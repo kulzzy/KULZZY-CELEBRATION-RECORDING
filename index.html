@@ -1,1 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#07152d">
+<title>KULZZY CELEBRATION STUDIO</title>
+<style>
+:root{
+  --navy:#06152b;
+  --gold:#d8ad35;
+  --yellow:#f1c82d;
+  --red:#e21c1c;
+  --white:#fff;
+  --panel:#0c1f3d;
+  --line:#29456f;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:#020914;color:#fff;font-family:Arial,Helvetica,sans-serif}
+body{min-height:100vh;overflow-x:hidden}
+button,input,select{font:inherit}
+button{cursor:pointer}
+.app{max-width:1500px;margin:0 auto;padding:12px}
+header{
+  background:linear-gradient(135deg,#06152b,#102d55);
+  border:1px solid #31527f;border-radius:14px;padding:14px 16px;
+  display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;
+}
+.brand{font-size:20px;font-weight:900;letter-spacing:.7px}
+.status{font-size:12px;color:#b9d0ee}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:14px;margin-top:14px}
+.stage-panel,.admin{
+  background:#07172e;border:1px solid #29456f;border-radius:14px;padding:12px;
+}
+.stage-wrap{display:flex;justify-content:center;align-items:center;min-height:50vh;background:#020914;border-radius:10px;overflow:hidden}
+.stage{
+  position:relative;width:min(768px,100%);aspect-ratio:768/1024;
+  overflow:hidden;background:#000;
+}
+#previewCanvas{width:100%;height:100%;display:block}
+.controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.btn{
+  border:0;border-radius:9px;padding:11px 13px;font-weight:800;color:#fff;background:#18365e;
+}
+.btn:hover{filter:brightness(1.15)}
+.btn.gold{background:#b58a16;color:#fff}
+.btn.red{background:#c91616}
+.btn.green{background:#16834a}
+.btn.gray{background:#34445a}
+.section{border:1px solid #29456f;border-radius:11px;padding:12px;margin-bottom:10px;background:#091c37}
+.section h3{margin:0 0 10px;font-size:14px;text-transform:uppercase;letter-spacing:.6px}
+label{display:block;font-size:12px;color:#b8cbe5;margin:8px 0 5px}
+input[type=file],input[type=text],input[type=number],select{
+  width:100%;background:#06152b;color:#fff;border:1px solid #35547e;border-radius:8px;padding:9px;
+}
+input[type=range]{width:100%}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.small{font-size:11px;color:#9db3cf}
+.counter{font-size:12px;color:#cbd9ea;margin-top:7px}
+.record-dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#555;margin-right:6px}
+.record-dot.on{background:#ff1b1b;animation:blink .75s infinite}
+@keyframes blink{50%{opacity:.25}}
+.camera-box{margin-top:8px;background:#000;border-radius:8px;overflow:hidden;display:none}
+#cameraVideo{width:100%;display:block}
+.downloads{display:grid;gap:6px;margin-top:8px}
+.downloads a{display:block;text-align:center;text-decoration:none;border-radius:8px;padding:9px;background:#214d7f;color:#fff;font-weight:800}
+.notice{font-size:11px;line-height:1.4;color:#9eb6d4;margin-top:8px}
+@media(max-width:950px){
+  .layout{grid-template-columns:1fr}
+  .admin{order:2}
+}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <div>
+    <div class="brand">KULZZY CELEBRATION STUDIO</div>
+    <div class="status">768 × 1024 Celebration Display • Photo + Moving Wishes + Recording</div>
+  </div>
+  <div id="recordStatus"><span class="record-dot" id="recordDot"></span><span id="recordText">READY</span></div>
+</header>
 
+<div class="layout">
+  <section class="stage-panel">
+    <div class="stage-wrap">
+      <div class="stage">
+        <canvas id="previewCanvas" width="768" height="1024"></canvas>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="btn gold" id="randomWishBtn">NEW MILLION WISHES</button>
+      <button class="btn" id="nextPhotoBtn">NEXT PHOTO</button>
+      <button class="btn green" id="startVideoBtn">START VIDEO</button>
+      <button class="btn red" id="stopVideoBtn" disabled>STOP & SAVE VIDEO</button>
+    </div>
+
+    <div class="camera-box" id="cameraBox">
+      <video id="cameraVideo" autoplay muted playsinline></video>
+    </div>
+
+    <div class="downloads" id="downloads"></div>
+    <div class="notice">
+      Video recording captures the 768 × 1024 celebration canvas and microphone audio.
+      Camera preview is optional. Camera/microphone access requires browser permission and HTTPS
+      such as GitHub Pages.
+    </div>
+  </section>
+
+  <aside class="admin">
+    <div class="section">
+      <h3>1. Photo Upload</h3>
+      <input id="photoInput" type="file" accept="image/*" multiple>
+      <div class="counter" id="photoCounter">0 photos loaded</div>
+      <label>Photo slide time (seconds)</label>
+      <input id="slideTime" type="number" min="1" max="60" value="5">
+      <div class="controls">
+        <button class="btn" id="clearPhotosBtn">CLEAR PHOTOS</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>2. Wishes</h3>
+      <div class="row">
+        <div>
+          <label>Minimum</label>
+          <input id="minWish" type="number" min="1000000" max="999000000000000" value="1000000">
+        </div>
+        <div>
+          <label>Maximum</label>
+          <input id="maxWish" type="number" min="1000000" max="999000000000000" value="999000000000000">
+        </div>
+      </div>
+      <label>Wishes per screen</label>
+      <input id="wishCount" type="range" min="4" max="28" value="14">
+      <div class="counter"><span id="wishCountValue">14</span> moving wishes</div>
+
+      <label>Wish speed</label>
+      <input id="wishSpeed" type="range" min="10" max="120" value="42">
+      <div class="counter"><span id="wishSpeedValue">42</span> speed</div>
+
+      <label>Wish size</label>
+      <input id="wishSize" type="range" min="16" max="54" value="28">
+      <div class="counter"><span id="wishSizeValue">28</span> px</div>
+
+      <div class="controls">
+        <button class="btn gold" id="regenerateBtn">GENERATE WISHES</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>3. Audio Recording</h3>
+      <div class="controls">
+        <button class="btn green" id="startAudioBtn">START AUDIO</button>
+        <button class="btn red" id="stopAudioBtn" disabled>STOP AUDIO</button>
+      </div>
+      <div class="counter" id="audioStatus">Audio recorder ready.</div>
+      <audio id="audioPlayback" controls style="width:100%;margin-top:8px;display:none"></audio>
+      <div class="downloads" id="audioDownloads"></div>
+    </div>
+
+    <div class="section">
+      <h3>4. Video Recording</h3>
+      <label><input type="checkbox" id="cameraToggle"> Show camera preview while recording</label>
+      <div class="controls">
+        <button class="btn green" id="startCameraBtn">OPEN CAMERA</button>
+        <button class="btn gray" id="closeCameraBtn">CLOSE CAMERA</button>
+      </div>
+      <div class="small">The camera is not placed into the celebration canvas unless you choose to use it as an overlay in Settings.</div>
+    </div>
+
+    <div class="section">
+      <h3>5. Settings</h3>
+      <label>Photo fit</label>
+      <select id="photoFit">
+        <option value="cover">Fill picture box</option>
+        <option value="contain">Show whole picture</option>
+      </select>
+
+      <label>Wish opacity</label>
+      <input id="wishOpacity" type="range" min="20" max="100" value="88">
+      <div class="counter"><span id="wishOpacityValue">88</span>%</div>
+
+      <label>Wish direction</label>
+      <select id="wishDirection">
+        <option value="up">Rise upward</option>
+        <option value="diagonal">Rise diagonally</option>
+        <option value="left">Move left</option>
+        <option value="right">Move right</option>
+      </select>
+
+      <label>Wish text</label>
+      <input id="wishText" type="text" value="GOOD THINGS OF LIFE TO YOU">
+
+      <label>Camera overlay</label>
+      <select id="cameraOverlay">
+        <option value="off">Off</option>
+        <option value="small">Small corner</option>
+        <option value="large">Large corner</option>
+      </select>
+    </div>
+  </aside>
+</div>
+</div>
+
+<script>
+"use strict";
+
+/*
+  KULZZY CELEBRATION STUDIO
+  Background image:
+  Put the supplied original image beside this file as:
+  background.jpg
+
+  The image is used as the complete 768 x 1024 background.
+  It is not redesigned or reconstructed.
+*/
+
+const W = 768, H = 1024;
+const canvas = document.getElementById("previewCanvas");
+const ctx = canvas.getContext("2d", {alpha:false});
+
+const photoInput = document.getElementById("photoInput");
+const photoCounter = document.getElementById("photoCounter");
+const slideTimeInput = document.getElementById("slideTime");
+const clearPhotosBtn = document.getElementById("clearPhotosBtn");
+const nextPhotoBtn = document.getElementById("nextPhotoBtn");
+
+const randomWishBtn = document.getElementById("randomWishBtn");
+const regenerateBtn = document.getElementById("regenerateBtn");
+const minWishInput = document.getElementById("minWish");
+const maxWishInput = document.getElementById("maxWish");
+const wishCountInput = document.getElementById("wishCount");
+const wishSpeedInput = document.getElementById("wishSpeed");
+const wishSizeInput = document.getElementById("wishSize");
+const wishCountValue = document.getElementById("wishCountValue");
+const wishSpeedValue = document.getElementById("wishSpeedValue");
+const wishSizeValue = document.getElementById("wishSizeValue");
+const wishOpacity = document.getElementById("wishOpacity");
+const wishOpacityValue = document.getElementById("wishOpacityValue");
+const wishDirection = document.getElementById("wishDirection");
+const wishText = document.getElementById("wishText");
+const photoFit = document.getElementById("photoFit");
+
+const startAudioBtn = document.getElementById("startAudioBtn");
+const stopAudioBtn = document.getElementById("stopAudioBtn");
+const audioStatus = document.getElementById("audioStatus");
+const audioPlayback = document.getElementById("audioPlayback");
+const audioDownloads = document.getElementById("audioDownloads");
+
+const startVideoBtn = document.getElementById("startVideoBtn");
+const stopVideoBtn = document.getElementById("stopVideoBtn");
+const recordText = document.getElementById("recordText");
+const recordDot = document.getElementById("recordDot");
+const downloads = document.getElementById("downloads");
+
+const cameraToggle = document.getElementById("cameraToggle");
+const cameraBox = document.getElementById("cameraBox");
+const cameraVideo = document.getElementById("cameraVideo");
+const startCameraBtn = document.getElementById("startCameraBtn");
+const closeCameraBtn = document.getElementById("closeCameraBtn");
+const cameraOverlay = document.getElementById("cameraOverlay");
+
+let background = new Image();
+background.src = "background.jpg";
+let backgroundReady = false;
+background.onload = () => { backgroundReady = true; };
+background.onerror = () => { backgroundReady = false; };
+
+let photos = [];
+let photoIndex = 0;
+let photoStartedAt = performance.now();
+
+let wishes = [];
+let animationTime = 0;
+
+let audioStream = null;
+let audioRecorder = null;
+let audioChunks = [];
+
+let cameraStream = null;
+
+let videoRecorder = null;
+let videoChunks = [];
+let recording = false;
+
+const photoBox = {x:80, y:83, w:309, h:436};
+
+/* ---------- utility ---------- */
+function randomInt(min,max){
+  min = Math.ceil(Number(min));
+  max = Math.floor(Number(max));
+  if(max < min){ const t=min; min=max; max=t; }
+  return Math.floor(Math.random()*(max-min+1))+min;
+}
+
+function formatWishNumber(n){
+  return new Intl.NumberFormat("en-US").format(Math.round(n));
+}
+
+function newWish(){
+  const min = Math.max(1000000, Number(minWishInput.value) || 1000000);
+  const max = Math.min(999000000000000, Number(maxWishInput.value) || 999000000000000);
+  return formatWishNumber(randomInt(Math.min(min,max),Math.max(min,max)));
+}
+
+function wishString(){
+  return newWish() + " " + (wishText.value.trim() || "GOOD THINGS OF LIFE TO YOU");
+}
+
+function makeWishes(){
+  wishes = [];
+  const count = Number(wishCountInput.value);
+  for(let i=0;i<count;i++){
+    const direction = wishDirection.value;
+    let x, y, vx, vy;
+    const speed = Number(wishSpeedInput.value);
+    if(direction === "up"){
+      x = randomInt(85,700);
+      y = randomInt(photoBox.y+photoBox.h, H-20);
+      vx = randomInt(-10,10);
+      vy = -(speed + Math.random()*speed*.7);
+    }else if(direction === "diagonal"){
+      x = randomInt(50,700);
+      y = randomInt(photoBox.y+40, H-10);
+      vx = (Math.random()<.5?-1:1)*(speed*.35+Math.random()*speed*.35);
+      vy = -(speed + Math.random()*speed*.6);
+    }else if(direction === "left"){
+      x = randomInt(photoBox.x+photoBox.w+10, W+120);
+      y = randomInt(photoBox.y+10, photoBox.y+photoBox.h-10);
+      vx = -(speed + Math.random()*speed*.5);
+      vy = randomInt(-12,12);
+    }else{
+      x = randomInt(-120,W-20);
+      y = randomInt(photoBox.y+10, photoBox.y+photoBox.h-10);
+      vx = speed + Math.random()*speed*.5;
+      vy = randomInt(-12,12);
+    }
+    wishes.push({
+      text:wishString(),
+      x,y,vx,vy,
+      size:Number(wishSizeInput.value)*(0.55+Math.random()*.8),
+      rotation:(Math.random()-.5)*.12,
+      opacity:(0.55+Math.random()*.45),
+      shadow:Math.random()>.45
+    });
+  }
+}
+
+function drawContainImage(img, box, fit){
+  const iw=img.naturalWidth || img.width;
+  const ih=img.naturalHeight || img.height;
+  if(!iw || !ih) return;
+  const scale = fit==="contain"
+    ? Math.min(box.w/iw,box.h/ih)
+    : Math.max(box.w/iw,box.h/ih);
+  const dw=iw*scale, dh=ih*scale;
+  const dx=box.x+(box.w-dw)/2;
+  const dy=box.y+(box.h-dh)/2;
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(box.x,box.y,box.w,box.h);
+  ctx.clip();
+  ctx.drawImage(img,dx,dy,dw,dh);
+  ctx.restore();
+}
+
+function drawBackground(){
+  if(backgroundReady){
+    ctx.drawImage(background,0,0,W,H);
+  }else{
+    ctx.fillStyle="#ffffff";
+    ctx.fillRect(0,0,W,H);
+    ctx.fillStyle="#111";
+    ctx.font="bold 24px Arial";
+    ctx.fillText("Place background.jpg beside index.html",30,50);
+  }
+}
+
+function drawCurrentPhoto(){
+  if(!photos.length) return;
+  const p=photos[photoIndex];
+  drawContainImage(p,photoBox,photoFit.value);
+}
+
+function drawCameraOverlay(){
+  if(!cameraStream || cameraOverlay.value==="off" || cameraVideo.readyState<2) return;
+  let w = cameraOverlay.value==="large" ? 230 : 145;
+  let h = w*cameraVideo.videoHeight/cameraVideo.videoWidth;
+  if(!isFinite(h)) h=w*0.75;
+  const x=W-w-22, y=22;
+  ctx.save();
+  ctx.beginPath();
+  ctx.roundRect(x,y,w,h,12);
+  ctx.clip();
+  ctx.drawImage(cameraVideo,x,y,w,h);
+  ctx.restore();
+  ctx.strokeStyle="#fff";
+  ctx.lineWidth=4;
+  ctx.strokeRect(x,y,w,h);
+}
+
+function drawWishes(dt){
+  const speedScale=dt/1000;
+  ctx.textAlign="center";
+  ctx.textBaseline="middle";
+
+  for(const w of wishes){
+    w.x += w.vx*speedScale;
+    w.y += w.vy*speedScale;
+
+    const margin=140;
+    if(w.y < photoBox.y-80 || w.y > H+80 || w.x < -margin || w.x > W+margin){
+      const direction=wishDirection.value;
+      if(direction==="up"){
+        w.x=randomInt(photoBox.x,photoBox.x+photoBox.w);
+        w.y=photoBox.y+photoBox.h+randomInt(10,100);
+      }else if(direction==="diagonal"){
+        w.x=randomInt(photoBox.x,photoBox.x+photoBox.w);
+        w.y=photoBox.y+photoBox.h+randomInt(10,100);
+        w.vx=(Math.random()<.5?-1:1)*(Number(wishSpeedInput.value)*.35+Math.random()*20);
+        w.vy=-(Number(wishSpeedInput.value)+Math.random()*30);
+      }else if(direction==="left"){
+        w.x=photoBox.x+photoBox.w+randomInt(20,150);
+        w.y=randomInt(photoBox.y,photoBox.y+photoBox.h);
+      }else{
+        w.x=photoBox.x-randomInt(20,150);
+        w.y=randomInt(photoBox.y,photoBox.y+photoBox.h);
+      }
+      w.text=wishString();
+    }
+
+    ctx.save();
+    ctx.translate(w.x,w.y);
+    ctx.rotate(w.rotation);
+    ctx.globalAlpha=(Number(wishOpacity.value)/100)*w.opacity;
+    ctx.font=`900 ${Math.max(12,w.size)}px Arial, Helvetica, sans-serif`;
+    ctx.lineWidth=Math.max(2,w.size*.09);
+    ctx.strokeStyle="rgba(0,0,0,.62)";
+    ctx.fillStyle="#fff";
+    if(w.shadow) ctx.strokeText(w.text,0,0);
+    ctx.fillText(w.text,0,0);
+    ctx.restore();
+  }
+  ctx.globalAlpha=1;
+}
+
+let lastFrame=performance.now();
+function render(now){
+  const dt=Math.min(50,now-lastFrame);
+  lastFrame=now;
+
+  if(photos.length && now-photoStartedAt >= Number(slideTimeInput.value)*1000){
+    photoIndex=(photoIndex+1)%photos.length;
+    photoStartedAt=now;
+  }
+
+  drawBackground();
+  drawCurrentPhoto();
+  drawWishes(dt);
+  drawCameraOverlay();
+
+  requestAnimationFrame(render);
+}
+requestAnimationFrame(render);
+
+/* ---------- photo controls ---------- */
+photoInput.addEventListener("change", async e=>{
+  const files=[...e.target.files];
+  const loaded=[];
+  for(const file of files){
+    if(!file.type.startsWith("image/")) continue;
+    const url=URL.createObjectURL(file);
+    const img=new Image();
+    img.src=url;
+    await img.decode().catch(()=>{});
+    loaded.push(img);
+  }
+  photos.push(...loaded);
+  photoCounter.textContent=`${photos.length} photo${photos.length===1?"":"s"} loaded`;
+  if(photos.length===loaded.length) photoIndex=0;
+  photoStartedAt=performance.now();
+});
+
+clearPhotosBtn.addEventListener("click",()=>{
+  photos.forEach(p=>{ if(p.src.startsWith("blob:")) URL.revokeObjectURL(p.src); });
+  photos=[]; photoIndex=0;
+  photoCounter.textContent="0 photos loaded";
+});
+
+nextPhotoBtn.addEventListener("click",()=>{
+  if(photos.length){photoIndex=(photoIndex+1)%photos.length;photoStartedAt=performance.now();}
+});
+
+slideTimeInput.addEventListener("input",()=>photoStartedAt=performance.now());
+
+/* ---------- wish controls ---------- */
+function updateLabels(){
+  wishCountValue.textContent=wishCountInput.value;
+  wishSpeedValue.textContent=wishSpeedInput.value;
+  wishSizeValue.textContent=wishSizeInput.value;
+  wishOpacityValue.textContent=wishOpacity.value;
+}
+[wishCountInput,wishSpeedInput,wishSizeInput,wishOpacity].forEach(el=>{
+  el.addEventListener("input",()=>{updateLabels();makeWishes();});
+});
+[wishDirection,wishText,minWishInput,maxWishInput].forEach(el=>el.addEventListener("input",makeWishes));
+randomWishBtn.addEventListener("click",makeWishes);
+regenerateBtn.addEventListener("click",makeWishes);
+updateLabels();
+makeWishes();
+
+/* ---------- audio ---------- */
+function preferredMime(){
+  const types=[
+    "video/webm;codecs=vp9,opus",
+    "video/webm;codecs=vp8,opus",
+    "video/webm",
+    "audio/webm;codecs=opus",
+    "audio/webm"
+  ];
+  return types.find(t=>MediaRecorder.isTypeSupported(t)) || "";
+}
+
+startAudioBtn.addEventListener("click",async()=>{
+  try{
+    audioStream=await navigator.mediaDevices.getUserMedia({audio:true});
+    audioChunks=[];
+    const mime=preferredMime();
+    audioRecorder=new MediaRecorder(audioStream,mime?{mimeType:mime}:{});
+    audioRecorder.ondataavailable=e=>{if(e.data.size) audioChunks.push(e.data)};
+    audioRecorder.onstop=()=>{
+      const blob=new Blob(audioChunks,{type:audioRecorder.mimeType||"audio/webm"});
+      const url=URL.createObjectURL(blob);
+      audioPlayback.src=url;
+      audioPlayback.style.display="block";
+      audioDownloads.innerHTML="";
+      const a=document.createElement("a");
+      a.href=url;
+      a.download=`kulzzy-audio-${Date.now()}.webm`;
+      a.textContent="SAVE AUDIO TO DEVICE";
+      audioDownloads.appendChild(a);
+      audioStatus.textContent="Audio recording saved and ready.";
+      if(audioStream) audioStream.getTracks().forEach(t=>t.stop());
+    };
+    audioRecorder.start();
+    startAudioBtn.disabled=true;
+    stopAudioBtn.disabled=false;
+    audioStatus.textContent="RECORDING AUDIO...";
+  }catch(err){
+    audioStatus.textContent="Microphone permission was not granted.";
+  }
+});
+
+stopAudioBtn.addEventListener("click",()=>{
+  if(audioRecorder && audioRecorder.state!=="inactive") audioRecorder.stop();
+  startAudioBtn.disabled=false;
+  stopAudioBtn.disabled=true;
+});
+
+/* ---------- camera ---------- */
+async function openCamera(){
+  try{
+    if(cameraStream) cameraStream.getTracks().forEach(t=>t.stop());
+    cameraStream=await navigator.mediaDevices.getUserMedia({video:true,audio:false});
+    cameraVideo.srcObject=cameraStream;
+    cameraBox.style.display="block";
+  }catch(err){
+    alert("Camera permission was not granted.");
+  }
+}
+startCameraBtn.addEventListener("click",openCamera);
+closeCameraBtn.addEventListener("click",()=>{
+  if(cameraStream) cameraStream.getTracks().forEach(t=>t.stop());
+  cameraStream=null;
+  cameraVideo.srcObject=null;
+  cameraBox.style.display="none";
+});
+
+/* ---------- video recording ---------- */
+startVideoBtn.addEventListener("click",async()=>{
+  if(recording) return;
+
+  try{
+    const mic=await navigator.mediaDevices.getUserMedia({audio:true});
+    audioStream=mic;
+
+    const canvasStream=canvas.captureStream(30);
+    const combined=new MediaStream([
+      ...canvasStream.getVideoTracks(),
+      ...mic.getAudioTracks()
+    ]);
+
+    videoChunks=[];
+    const mimeOptions=[
+      "video/webm;codecs=vp9,opus",
+      "video/webm;codecs=vp8,opus",
+      "video/webm"
+    ];
+    const mime=mimeOptions.find(t=>MediaRecorder.isTypeSupported(t))||"";
+    videoRecorder=new MediaRecorder(combined,mime?{mimeType:mime,videoBitsPerSecond:6000000}:{});
+    videoRecorder.ondataavailable=e=>{if(e.data.size) videoChunks.push(e.data)};
+    videoRecorder.onstop=()=>{
+      const blob=new Blob(videoChunks,{type:videoRecorder.mimeType||"video/webm"});
+      const url=URL.createObjectURL(blob);
+      downloads.innerHTML="";
+      const a=document.createElement("a");
+      a.href=url;
+      a.download=`kulzzy-celebration-${Date.now()}.webm`;
+      a.textContent="SAVE FINISHED VIDEO TO DEVICE";
+      downloads.appendChild(a);
+      if(audioStream) audioStream.getTracks().forEach(t=>t.stop());
+      canvasStream.getTracks().forEach(t=>t.stop());
+      recording=false;
+      recordDot.classList.remove("on");
+      recordText.textContent="READY";
+      startVideoBtn.disabled=false;
+      stopVideoBtn.disabled=true;
+    };
+
+    videoRecorder.start(250);
+    recording=true;
+    recordDot.classList.add("on");
+    recordText.textContent="RECORDING";
+    startVideoBtn.disabled=true;
+    stopVideoBtn.disabled=false;
+
+    if(cameraToggle.checked && !cameraStream) await openCamera();
+  }catch(err){
+    recordText.textContent="MICROPHONE NOT AVAILABLE";
+  }
+});
+
+stopVideoBtn.addEventListener("click",()=>{
+  if(videoRecorder && videoRecorder.state!=="inactive") videoRecorder.stop();
+});
+
+/* Optional camera checkbox visibility */
+cameraToggle.addEventListener("change",()=>{
+  if(cameraToggle.checked) openCamera();
+  else {
+    if(cameraStream) cameraStream.getTracks().forEach(t=>t.stop());
+    cameraStream=null;
+    cameraVideo.srcObject=null;
+    cameraBox.style.display="none";
+  }
+});
+
+window.addEventListener("beforeunload",()=>{
+  if(cameraStream) cameraStream.getTracks().forEach(t=>t.stop());
+  if(audioStream) audioStream.getTracks().forEach(t=>t.stop());
+});
+</script>
+</body>
+</html>
