@@ -48,7 +48,18 @@ header{
 .tool-btn.active{background:#fff3ee}
 .tool-btn.active .tool-label{font-weight:900}
 .timeline{flex:1;min-height:0;padding:5px 6px 4px;background:#f8f8f8;color:#1c1c1c;display:flex;flex-direction:column;gap:4px;overflow:hidden}
-.timeline-head{height:20px;display:flex;align-items:center;justify-content:space-between;font-size:10px;color:#777;font-weight:700}
+.timeline-head{height:20px;display:flex;align-items:center;justify-content:space-between;font-size:10px;color:#777;font-weight:700;flex:0 0 20px}
+.layer-actions{flex:0 0 42px;display:flex;gap:4px;align-items:center;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;padding:2px 0}
+.layer-actions::-webkit-scrollbar{display:none}
+.layer-action{height:34px;min-width:82px;border:1px solid #c8cdd3;border-radius:5px;background:#fff;color:#333;font-size:8px;font-weight:900;display:flex;align-items:center;justify-content:center;gap:4px;white-space:nowrap}
+.layer-action.gold{background:#f1c82d}.layer-action.green{background:#28a85b;color:#fff}.layer-action.red{background:#e21c1c;color:#fff}.layer-action.dark{background:#243d60;color:#fff}
+.layer-row.deleted{opacity:.38}.layer-row.deleted .layer-block{filter:grayscale(1)}
+.layer-delete{width:28px;height:24px;flex:0 0 28px;border:1px solid #d3a4a4;border-radius:4px;background:#fff;color:#c91515;font-size:12px;font-weight:900}
+.feature-page-tools{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}
+.feature-page-tools .btn{padding:7px 8px}
+.inline-check{display:flex!important;align-items:center;gap:5px;margin:6px 0!important}
+.inline-check input{width:auto!important}
+.color-row{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 .layers{flex:1;min-height:0;display:flex;flex-direction:column;gap:3px;overflow:hidden}
 .layer-row{height:27px;display:flex;align-items:center;gap:5px;min-width:0}
 .layer-name{width:88px;flex:0 0 88px;font-size:9px;font-weight:800;color:#2e2e2e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -145,11 +156,17 @@ input[type=range]{width:100%;height:18px}
 
     <div class="timeline">
       <div class="timeline-head"><span>LAYERS</span><span>00:00</span></div>
+      <div class="layer-actions" id="layerActions">
+        <button class="layer-action gold" id="layerNewWish">✦ NEW WISHES</button>
+        <button class="layer-action dark" id="layerNextPhoto">▣ NEXT PHOTO</button>
+        <button class="layer-action green" id="layerStartVideo">▶ START VIDEO</button>
+        <button class="layer-action red" id="layerStopVideo">■ STOP &amp; SAVE</button>
+      </div>
       <div class="layers" id="layers">
-        <div class="layer-row"><div class="layer-name">PHOTO</div><div class="layer-track"><div class="layer-block photo">CELEBRANT PHOTO</div></div><button class="layer-plus" data-add-layer="photo">+</button></div>
-        <div class="layer-row"><div class="layer-name">WISHES</div><div class="layer-track"><div class="layer-block wish">MOVING WISHES</div></div><button class="layer-plus" data-add-layer="wish">+</button></div>
-        <div class="layer-row"><div class="layer-name">TEXT</div><div class="layer-track"><div class="layer-block text">CELEBRANT NAME</div></div><button class="layer-plus" data-add-layer="text">+</button></div>
-        <div class="layer-row"><div class="layer-name">MEDIA</div><div class="layer-track"><div class="layer-block media">PICTURE / VIDEO</div></div><button class="layer-plus" data-add-layer="media">+</button></div>
+        <div class="layer-row" data-layer-type="photo"><div class="layer-name">PHOTO</div><div class="layer-track"><div class="layer-block photo">CELEBRANT PHOTO</div></div><button class="layer-plus" data-add-layer="photo">+</button><button class="layer-delete" data-delete-layer="photo" title="Delete layer">✕</button></div>
+        <div class="layer-row" data-layer-type="wish"><div class="layer-name">WISHES</div><div class="layer-track"><div class="layer-block wish">MOVING WISHES</div></div><button class="layer-plus" data-add-layer="wish">+</button><button class="layer-delete" data-delete-layer="wish" title="Delete layer">✕</button></div>
+        <div class="layer-row" data-layer-type="text"><div class="layer-name">TEXT</div><div class="layer-track"><div class="layer-block text">CELEBRANT NAME</div></div><button class="layer-plus" data-add-layer="text">+</button><button class="layer-delete" data-delete-layer="text" title="Delete layer">✕</button></div>
+        <div class="layer-row" data-layer-type="media"><div class="layer-name">MEDIA</div><div class="layer-track"><div class="layer-block media">PICTURE / VIDEO</div></div><button class="layer-plus" data-add-layer="media">+</button><button class="layer-delete" data-delete-layer="media" title="Delete layer">✕</button></div>
       </div>
       <button class="layer-add-row" id="addLayerBtn">+ ADD MORE LAYER</button>
     </div>
@@ -164,13 +181,16 @@ input[type=range]{width:100%;height:18px}
     <div class="counter" id="photoCounter">0 photos loaded</div>
     <label>Photo slide time (seconds)</label>
     <input id="slideTime" type="number" min="1" max="60" value="5">
-    <div class="controls"><button class="btn" id="clearPhotosBtn">CLEAR PHOTOS</button></div>
+    <label>Photo opacity</label><input id="photoOpacity" type="range" min="20" max="100" value="100"><div class="counter"><span id="photoOpacityValue">100</span>%</div>
+    <label>Photo rotation</label><input id="photoRotation" type="range" min="-180" max="180" value="0"><div class="counter"><span id="photoRotationValue">0</span>°</div>
+    <label class="inline-check"><input id="photoFlip" type="checkbox"> Flip photo horizontally</label>
+    <div class="controls"><button class="btn" id="clearPhotosBtn">CLEAR PHOTOS</button><button class="btn gray" id="nextPhotoFeatureBtn">NEXT PHOTO</button></div>
   </div>
   <div class="section">
     <h3>2. Wishes</h3>
     <div class="section-grid">
-      <div class="field-card"><label>Minimum</label><input id="minWish" type="number" min="1000000" max="999000000000000" value="1000000"><label>Maximum</label><input id="maxWish" type="number" min="1000000" max="999000000000000" value="999000000000000"></div>
-      <div class="field-card"><label>Wishes per screen</label><input id="wishCount" type="range" min="4" max="28" value="14"><div class="counter"><span id="wishCountValue">14</span> moving wishes</div><label>Wish speed</label><input id="wishSpeed" type="range" min="10" max="120" value="42"><div class="counter"><span id="wishSpeedValue">42</span> speed</div><label>Wish size</label><input id="wishSize" type="range" min="10" max="36" value="18"><div class="counter"><span id="wishSizeValue">18</span> px</div></div>
+      <div class="field-card"><label>Minimum</label><input id="minWish" type="number" min="1000000" max="999000000000000" value="1000000"><label>Maximum</label><input id="maxWish" type="number" min="1000000" max="999000000000000" value="999000000000000"><label>Wish color</label><input id="wishColor" type="color" value="#ffffff" style="width:100%;height:34px;padding:3px;background:#06152b;border:1px solid #35547e;border-radius:7px"></div>
+      <div class="field-card"><label>Wishes per screen</label><input id="wishCount" type="range" min="4" max="28" value="14"><div class="counter"><span id="wishCountValue">14</span> moving wishes</div><label>Wish speed</label><input id="wishSpeed" type="range" min="10" max="120" value="42"><div class="counter"><span id="wishSpeedValue">42</span> speed</div><label>Wish size</label><input id="wishSize" type="range" min="10" max="36" value="18"><div class="counter"><span id="wishSizeValue">18</span> px</div><label>Wish spacing</label><input id="wishSpacing" type="range" min="10" max="100" value="40"><div class="counter"><span id="wishSpacingValue">40</span> spacing</div></div>
     </div>
     <div class="controls"><button class="btn gold" id="regenerateBtn">GENERATE WISHES</button></div>
   </div>
@@ -182,6 +202,8 @@ input[type=range]{width:100%;height:18px}
   </div>
   <div class="section">
     <h3>4. Video Recording</h3>
+    <label>Recording countdown</label><select id="recordCountdown"><option value="0">No countdown</option><option value="3">3 seconds</option><option value="5">5 seconds</option></select>
+    <label>Video quality</label><select id="videoQuality"><option value="standard">Standard</option><option value="high">High quality</option></select>
     <label><input type="checkbox" id="cameraToggle"> Show camera preview while recording</label>
     <div class="controls"><button class="btn green" id="startCameraBtn">OPEN CAMERA</button><button class="btn gray" id="closeCameraBtn">CLOSE CAMERA</button></div>
     <div class="small">The camera is not placed into the celebration canvas unless you choose to use it as an overlay in Settings.</div>
@@ -190,7 +212,7 @@ input[type=range]{width:100%;height:18px}
     <h3>5. Bottom Picture</h3>
     <div class="section-grid">
       <div class="field-card"><label>Add picture to the bottom of the video</label><input id="bottomPictureInput" type="file" accept="image/*"><div class="counter" id="bottomPictureStatus">No bottom picture selected.</div><div class="bottom-picture-preview" id="bottomPicturePreviewBox"><img id="bottomPicturePreview" alt="Bottom picture preview"></div></div>
-      <div class="field-card"><div class="crop-grid"><div><label>Width</label><input id="bottomPictureWidth" type="range" min="80" max="700" value="260"><div class="counter"><span id="bottomPictureWidthValue">260</span> px</div></div><div><label>Height</label><input id="bottomPictureHeight" type="range" min="40" max="350" value="130"><div class="counter"><span id="bottomPictureHeightValue">130</span> px</div></div></div><label>Bottom position</label><input id="bottomPictureBottom" type="range" min="0" max="300" value="18"><div class="counter"><span id="bottomPictureBottomValue">18</span> px from bottom</div><label>Horizontal position</label><input id="bottomPictureLeft" type="range" min="0" max="700" value="254"><div class="counter"><span id="bottomPictureLeftValue">254</span> px from left</div></div>
+      <div class="field-card"><div class="crop-grid"><div><label>Width</label><input id="bottomPictureWidth" type="range" min="80" max="700" value="260"><div class="counter"><span id="bottomPictureWidthValue">260</span> px</div></div><div><label>Height</label><input id="bottomPictureHeight" type="range" min="40" max="350" value="130"><div class="counter"><span id="bottomPictureHeightValue">130</span> px</div></div></div><label>Bottom position</label><input id="bottomPictureBottom" type="range" min="0" max="300" value="18"><div class="counter"><span id="bottomPictureBottomValue">18</span> px from bottom</div><label>Horizontal position</label><input id="bottomPictureLeft" type="range" min="0" max="700" value="254"><div class="counter"><span id="bottomPictureLeftValue">254</span> px from left</div><label>Opacity</label><input id="bottomPictureOpacity" type="range" min="10" max="100" value="100"><div class="counter"><span id="bottomPictureOpacityValue">100</span>%</div><label>Rotation</label><input id="bottomPictureRotation" type="range" min="-180" max="180" value="0"><div class="counter"><span id="bottomPictureRotationValue">0</span>°</div></div>
     </div>
     <div class="small">Drag the picture directly on the celebration screen to move it.</div>
     <div class="controls"><button class="btn gray" id="clearBottomPictureBtn">REMOVE BOTTOM PICTURE</button></div>
@@ -199,7 +221,7 @@ input[type=range]{width:100%;height:18px}
     <h3>Bottom Video</h3>
     <div class="section-grid">
       <div class="field-card"><label>Add video to the bottom of the video</label><input id="bottomVideoInput" type="file" accept="video/*"><div class="counter" id="bottomVideoStatus">No bottom video selected.</div></div>
-      <div class="field-card"><div class="crop-grid"><div><label>Width</label><input id="bottomVideoWidth" type="range" min="80" max="700" value="260"><div class="counter"><span id="bottomVideoWidthValue">260</span> px</div></div><div><label>Height</label><input id="bottomVideoHeight" type="range" min="40" max="350" value="130"><div class="counter"><span id="bottomVideoHeightValue">130</span> px</div></div></div><label>Bottom position</label><input id="bottomVideoBottom" type="range" min="0" max="900" value="18"><div class="counter"><span id="bottomVideoBottomValue">18</span> px from bottom</div><label>Horizontal position</label><input id="bottomVideoLeft" type="range" min="0" max="700" value="254"><div class="counter"><span id="bottomVideoLeftValue">254</span> px from left</div><label>Video volume</label><input id="bottomVideoVolume" type="range" min="0" max="100" value="100"><div class="counter"><span id="bottomVideoVolumeValue">100</span>%</div></div>
+      <div class="field-card"><div class="crop-grid"><div><label>Width</label><input id="bottomVideoWidth" type="range" min="80" max="700" value="260"><div class="counter"><span id="bottomVideoWidthValue">260</span> px</div></div><div><label>Height</label><input id="bottomVideoHeight" type="range" min="40" max="350" value="130"><div class="counter"><span id="bottomVideoHeightValue">130</span> px</div></div></div><label>Bottom position</label><input id="bottomVideoBottom" type="range" min="0" max="900" value="18"><div class="counter"><span id="bottomVideoBottomValue">18</span> px from bottom</div><label>Horizontal position</label><input id="bottomVideoLeft" type="range" min="0" max="700" value="254"><div class="counter"><span id="bottomVideoLeftValue">254</span> px from left</div><label>Video volume</label><input id="bottomVideoVolume" type="range" min="0" max="100" value="100"><div class="counter"><span id="bottomVideoVolumeValue">100</span>%</div><label>Video opacity</label><input id="bottomVideoOpacity" type="range" min="10" max="100" value="100"><div class="counter"><span id="bottomVideoOpacityValue">100</span>%</div><label class="inline-check"><input id="bottomVideoLoop" type="checkbox" checked> Loop video</label></div>
     </div>
     <div class="small">Drag the bottom video directly on the celebration screen to move it. It is cropped inside its selected size.</div>
     <div class="controls"><button class="btn gray" id="clearBottomVideoBtn">REMOVE BOTTOM VIDEO</button></div>
@@ -207,8 +229,8 @@ input[type=range]{width:100%;height:18px}
   <div class="section">
     <h3>Celebrant Name Text</h3>
     <div class="section-grid">
-      <div class="field-card"><label>Text</label><input id="celebrantText" type="text" placeholder="Enter celebrant name"><label>Font style</label><select id="celebrantTextFont"><option value="Arial">Arial</option><option value="Georgia">Georgia</option><option value="Trebuchet MS">Trebuchet MS</option><option value="Verdana">Verdana</option><option value="Courier New">Courier New</option></select><label>Text size</label><input id="celebrantTextSize" type="range" min="18" max="100" value="42"><div class="counter"><span id="celebrantTextSizeValue">42</span> px</div></div>
-      <div class="field-card"><label>Text faintness</label><input id="celebrantTextOpacity" type="range" min="20" max="100" value="72"><div class="counter"><span id="celebrantTextOpacityValue">72</span>%</div><label>Text color</label><input id="celebrantTextColor" type="color" value="#ffffff" style="width:100%;height:38px;padding:3px;background:#06152b;border:1px solid #35547e;border-radius:7px"><label>Text background</label><select id="celebrantTextBackground"><option value="none">None</option><option value="black">Black</option><option value="white">White</option><option value="red">Red</option><option value="gold">Gold</option><option value="navy">Navy</option><option value="transparent">Faint black</option></select></div>
+      <div class="field-card"><label>Text</label><input id="celebrantText" type="text" placeholder="Enter celebrant name"><label>Font style</label><select id="celebrantTextFont"><option value="Arial">Arial</option><option value="Georgia">Georgia</option><option value="Trebuchet MS">Trebuchet MS</option><option value="Verdana">Verdana</option><option value="Courier New">Courier New</option></select><label>Text size</label><input id="celebrantTextSize" type="range" min="18" max="100" value="42"><div class="counter"><span id="celebrantTextSizeValue">42</span> px</div><label>Alignment</label><select id="celebrantTextAlign"><option value="center">Center</option><option value="left">Left</option><option value="right">Right</option></select></div>
+      <div class="field-card"><label>Text faintness</label><input id="celebrantTextOpacity" type="range" min="20" max="100" value="72"><div class="counter"><span id="celebrantTextOpacityValue">72</span>%</div><label>Text color</label><input id="celebrantTextColor" type="color" value="#ffffff" style="width:100%;height:38px;padding:3px;background:#06152b;border:1px solid #35547e;border-radius:7px"><label>Text background</label><select id="celebrantTextBackground"><option value="none">None</option><option value="black">Black</option><option value="white">White</option><option value="red">Red</option><option value="gold">Gold</option><option value="navy">Navy</option><option value="transparent">Faint black</option></select><label>Letter spacing</label><input id="celebrantTextSpacing" type="range" min="0" max="12" value="0"><div class="counter"><span id="celebrantTextSpacingValue">0</span> px</div><label class="inline-check"><input id="celebrantTextOutline" type="checkbox" checked> Text outline</label></div>
     </div>
     <div class="small">Drag the name up or down directly on the picture.</div>
   </div>
@@ -257,20 +279,44 @@ featureClose.addEventListener("click", closeFeaturePage);
 
 /* Four visible editor layers + room to add more. */
 const layers = document.getElementById("layers");
-document.querySelectorAll(".layer-plus").forEach(btn => btn.addEventListener("click", () => {
-  const type = btn.dataset.addLayer || "media";
-  const row = document.createElement("div");
-  row.className = "layer-row";
-  row.innerHTML = `<div class="layer-name">${type.toUpperCase()} ${layers.children.length + 1}</div><div class="layer-track"><div class="layer-block ${type === "photo" ? "photo" : type === "wish" ? "wish" : type === "text" ? "text" : "media"}">NEW ${type.toUpperCase()} LAYER</div></div><button class="layer-plus" type="button">+</button>`;
-  layers.appendChild(row);
-}));
+function applyLayerDelete(row,type){
+  if(row.dataset.deleted === "true") return;
+  row.dataset.deleted="true"; row.classList.add("deleted");
+  const block=row.querySelector(".layer-block");
+  if(block) block.textContent="DELETED / HIDDEN";
+  if(type==="photo") photos.length=0;
+  if(type==="wish") wishes.length=0;
+  if(type==="text") celebrantText.value="";
+  if(type==="media"){
+    bottomPicture=null; bottomVideo=null;
+  }
+}
+function wireLayerRow(row){
+  const plus=row.querySelector(".layer-plus");
+  if(plus) plus.addEventListener("click",()=>{
+    const type=plus.dataset.addLayer || "media";
+    const newRow=document.createElement("div");
+    newRow.className="layer-row";
+    newRow.dataset.layerType=type;
+    newRow.innerHTML=`<div class="layer-name">${type.toUpperCase()} ${layers.children.length + 1}</div><div class="layer-track"><div class="layer-block ${type === "photo" ? "photo" : type === "wish" ? "wish" : type === "text" ? "text" : "media"}">NEW ${type.toUpperCase()} LAYER</div></div><button class="layer-plus" type="button">+</button><button class="layer-delete" type="button" title="Delete layer">✕</button>`;
+    layers.appendChild(newRow); wireLayerRow(newRow);
+  });
+  const del=row.querySelector(".layer-delete");
+  if(del) del.addEventListener("click",()=>applyLayerDelete(row,row.dataset.layerType||"media"));
+}
+[...layers.querySelectorAll(".layer-row")].forEach(wireLayerRow);
 
 document.getElementById("addLayerBtn").addEventListener("click", () => {
   const row = document.createElement("div");
-  row.className = "layer-row";
-  row.innerHTML = `<div class="layer-name">NEW LAYER</div><div class="layer-track"><div class="layer-block media" style="width:28%">EMPTY LAYER</div></div><button class="layer-plus" type="button">+</button>`;
-  layers.appendChild(row);
+  row.className = "layer-row"; row.dataset.layerType="media";
+  row.innerHTML = `<div class="layer-name">NEW LAYER</div><div class="layer-track"><div class="layer-block media" style="width:28%">EMPTY LAYER</div></div><button class="layer-plus" type="button">+</button><button class="layer-delete" type="button" title="Delete layer">✕</button>`;
+  layers.appendChild(row); wireLayerRow(row);
 });
+
+document.getElementById("layerNewWish").addEventListener("click",()=>randomWishBtn.click());
+document.getElementById("layerNextPhoto").addEventListener("click",()=>nextPhotoBtn.click());
+document.getElementById("layerStartVideo").addEventListener("click",()=>startVideoBtn.click());
+document.getElementById("layerStopVideo").addEventListener("click",()=>stopVideoBtn.click());
 
 /*
   KULZZY CELEBRATION STUDIO
@@ -303,6 +349,17 @@ const wishOpacityValue = document.getElementById("wishOpacityValue");
 const wishDirection = document.getElementById("wishDirection");
 const wishText = document.getElementById("wishText");
 const photoFit = document.getElementById("photoFit");
+const photoOpacity = document.getElementById("photoOpacity");
+const photoOpacityValue = document.getElementById("photoOpacityValue");
+const photoRotation = document.getElementById("photoRotation");
+const photoRotationValue = document.getElementById("photoRotationValue");
+const photoFlip = document.getElementById("photoFlip");
+const nextPhotoFeatureBtn = document.getElementById("nextPhotoFeatureBtn");
+const wishColor = document.getElementById("wishColor");
+const wishSpacing = document.getElementById("wishSpacing");
+const wishSpacingValue = document.getElementById("wishSpacingValue");
+const recordCountdown = document.getElementById("recordCountdown");
+const videoQuality = document.getElementById("videoQuality");
 
 const audioStatus = document.getElementById("audioStatus");
 const audioPlayback = document.getElementById("audioPlayback");
@@ -333,6 +390,10 @@ const bottomPictureWidthValue = document.getElementById("bottomPictureWidthValue
 const bottomPictureHeightValue = document.getElementById("bottomPictureHeightValue");
 const bottomPictureBottomValue = document.getElementById("bottomPictureBottomValue");
 const bottomPictureLeftValue = document.getElementById("bottomPictureLeftValue");
+const bottomPictureOpacity = document.getElementById("bottomPictureOpacity");
+const bottomPictureOpacityValue = document.getElementById("bottomPictureOpacityValue");
+const bottomPictureRotation = document.getElementById("bottomPictureRotation");
+const bottomPictureRotationValue = document.getElementById("bottomPictureRotationValue");
 const clearBottomPictureBtn = document.getElementById("clearBottomPictureBtn");
 
 const bottomVideoInput = document.getElementById("bottomVideoInput");
@@ -347,6 +408,9 @@ const bottomVideoHeightValue = document.getElementById("bottomVideoHeightValue")
 const bottomVideoBottomValue = document.getElementById("bottomVideoBottomValue");
 const bottomVideoLeftValue = document.getElementById("bottomVideoLeftValue");
 const bottomVideoVolumeValue = document.getElementById("bottomVideoVolumeValue");
+const bottomVideoOpacity = document.getElementById("bottomVideoOpacity");
+const bottomVideoOpacityValue = document.getElementById("bottomVideoOpacityValue");
+const bottomVideoLoop = document.getElementById("bottomVideoLoop");
 const clearBottomVideoBtn = document.getElementById("clearBottomVideoBtn");
 
 const celebrantText = document.getElementById("celebrantText");
@@ -355,6 +419,10 @@ const celebrantTextSize = document.getElementById("celebrantTextSize");
 const celebrantTextSizeValue = document.getElementById("celebrantTextSizeValue");
 const celebrantTextOpacity = document.getElementById("celebrantTextOpacity");
 const celebrantTextOpacityValue = document.getElementById("celebrantTextOpacityValue");
+const celebrantTextAlign = document.getElementById("celebrantTextAlign");
+const celebrantTextSpacing = document.getElementById("celebrantTextSpacing");
+const celebrantTextSpacingValue = document.getElementById("celebrantTextSpacingValue");
+const celebrantTextOutline = document.getElementById("celebrantTextOutline");
 
 let photos = [];
 let photoIndex = 0;
@@ -445,16 +513,19 @@ function makeWishes(){
   const direction = wishDirection.value;
 
   /* Spread wishes across the whole picture with deliberate spacing. */
+  const spacingFactor = 0.35 + (Number(wishSpacing.value)||40) / 100;
   const cols = Math.max(2, Math.ceil(Math.sqrt(count * 1.25)));
   const rows = Math.max(2, Math.ceil(count / cols));
-  const cellW = photoBox.w / cols;
-  const cellH = photoBox.h / rows;
+  const cellW = (photoBox.w / cols) * spacingFactor;
+  const cellH = (photoBox.h / rows) * spacingFactor;
+  const gridW = photoBox.w / cols;
+  const gridH = photoBox.h / rows;
 
   for(let i=0;i<count;i++){
     const col = i % cols;
     const row = Math.floor(i / cols);
-    let x = photoBox.x + col*cellW + cellW/2 + (Math.random()-.5)*cellW*.45;
-    let y = photoBox.y + row*cellH + cellH/2 + (Math.random()-.5)*cellH*.45;
+    let x = photoBox.x + col*gridW + gridW/2 + (Math.random()-.5)*cellW*.42;
+    let y = photoBox.y + row*gridH + gridH/2 + (Math.random()-.5)*cellH*.42;
     let vx = 0, vy = 0;
 
     if(direction === "up"){
@@ -507,7 +578,16 @@ function drawBackground(){
 function drawCurrentPhoto(){
   if(!photos.length) return;
   const p=photos[photoIndex];
+  const angle=(Number(photoRotation.value)||0)*Math.PI/180;
+  const opacity=(Number(photoOpacity.value)||100)/100;
+  ctx.save();
+  ctx.globalAlpha=opacity;
+  ctx.translate(W/2,H/2);
+  ctx.rotate(angle);
+  ctx.scale(photoFlip.checked?-1:1,1);
+  ctx.translate(-W/2,-H/2);
   drawContainImage(p,photoBox,photoFit.value);
+  ctx.restore();
 }
 
 function getBottomMediaRect(kind){
@@ -526,6 +606,10 @@ function getBottomMediaRect(kind){
 function drawBottomMedia(media,kind){
   if(!media || !media.readyState && kind==="video" || (kind==="video" && media.readyState<2) || (kind==="image" && !media.complete)) return;
   const box=getBottomMediaRect(kind);
+  const opacityEl=kind==="video"?bottomVideoOpacity:bottomPictureOpacity;
+  const rotationEl=kind==="video"?null:bottomPictureRotation;
+  const opacity=(Number(opacityEl?.value)||100)/100;
+  const angle=rotationEl ? (Number(rotationEl.value)||0)*Math.PI/180 : 0;
   const iw=media.videoWidth||media.naturalWidth||media.width;
   const ih=media.videoHeight||media.naturalHeight||media.height;
   if(!iw||!ih) return;
@@ -533,10 +617,13 @@ function drawBottomMedia(media,kind){
   const dw=iw*scale, dh=ih*scale;
   const dx=box.x+(box.w-dw)/2, dy=box.y+(box.h-dh)/2;
   ctx.save();
+  ctx.globalAlpha=opacity;
+  ctx.translate(box.x+box.w/2,box.y+box.h/2);
+  ctx.rotate(angle);
   ctx.beginPath();
-  ctx.rect(box.x,box.y,box.w,box.h);
+  ctx.rect(-box.w/2,-box.h/2,box.w,box.h);
   ctx.clip();
-  ctx.drawImage(media,dx,dy,dw,dh);
+  ctx.drawImage(media,dx-(box.x+box.w/2),dy-(box.y+box.h/2),dw,dh);
   ctx.restore();
 }
 
@@ -551,22 +638,29 @@ function drawCelebrantText(){
   const size=Math.max(18,Number(celebrantTextSize.value)||42);
   const y=Math.max(size,Math.min(H-size,celebrantTextY));
   ctx.save();
-  ctx.textAlign="center";
+  ctx.textAlign=celebrantTextAlign.value||"center";
   ctx.textBaseline="middle";
   ctx.font=`700 ${size}px "${celebrantTextFont.value}", Arial, sans-serif`;
   ctx.globalAlpha=(Number(celebrantTextOpacity.value)||72)/100;
-  const textWidth=ctx.measureText(text).width;
+  const spacing=Number(celebrantTextSpacing.value)||0;
+  const textWidth=ctx.measureText(text).width + Math.max(0,text.length-1)*spacing;
+  const textX=celebrantTextAlign.value==="left" ? 24 : celebrantTextAlign.value==="right" ? W-24 : W/2;
   const bg=celebrantTextBackground.value;
   if(bg!=="none") {
     const padX=18, padY=10;
     const bgColor={black:"#000000",white:"#ffffff",red:"#d71920",gold:"#d8ad35",navy:"#06152b",transparent:"rgba(0,0,0,.38)"}[bg]||"transparent";
     ctx.fillStyle=bgColor;
-    ctx.fillRect(W/2-textWidth/2-padX,y-size/2-padY,textWidth+padX*2,size+padY*2);
+    const bgX=celebrantTextAlign.value==="left" ? textX-padX : celebrantTextAlign.value==="right" ? textX-textWidth-padX : textX-textWidth/2-padX;
+    ctx.fillRect(bgX,y-size/2-padY,textWidth+padX*2,size+padY*2);
   }
   ctx.fillStyle=celebrantTextColor.value||"#ffffff";
   ctx.shadowColor="rgba(0,0,0,.55)";
   ctx.shadowBlur=5;
-  ctx.fillText(text,W/2,y);
+  if(celebrantTextOutline.checked){ ctx.lineWidth=3; ctx.strokeStyle="rgba(0,0,0,.65)"; ctx.strokeText(text,textX,y); }
+  if(spacing>0){
+    let total=textWidth, start=celebrantTextAlign.value==="left"?textX:celebrantTextAlign.value==="right"?textX-total:textX-total/2;
+    for(const ch of text){ const cw=ctx.measureText(ch).width; ctx.fillText(ch,start+cw/2,y); start+=cw+spacing; }
+  }else ctx.fillText(text,textX,y);
   ctx.restore();
   ctx.globalAlpha=1;
 }
@@ -696,7 +790,7 @@ function drawWishes(dt){
     ctx.font=`900 ${Math.max(10,w.size)}px Arial, Helvetica, sans-serif`;
     ctx.lineWidth=Math.max(1.5,w.size*.07);
     ctx.strokeStyle="rgba(0,0,0,.62)";
-    ctx.fillStyle="#fff";
+    ctx.fillStyle=wishColor.value||"#fff";
     if(w.shadow) ctx.strokeText(w.text,0,0);
     ctx.fillText(w.text,0,0);
     ctx.restore();
@@ -724,6 +818,20 @@ function render(now){
   requestAnimationFrame(render);
 }
 requestAnimationFrame(render);
+
+function updateEditorFeatureLabels(){
+  photoOpacityValue.textContent=photoOpacity.value; photoRotationValue.textContent=photoRotation.value;
+  wishSpacingValue.textContent=wishSpacing.value;
+  bottomPictureOpacityValue.textContent=bottomPictureOpacity.value; bottomPictureRotationValue.textContent=bottomPictureRotation.value;
+  bottomVideoOpacityValue.textContent=bottomVideoOpacity.value;
+  celebrantTextSpacingValue.textContent=celebrantTextSpacing.value;
+}
+[photoOpacity,photoRotation,wishSpacing,bottomPictureOpacity,bottomPictureRotation,bottomVideoOpacity,celebrantTextSpacing].forEach(el=>el.addEventListener("input",updateEditorFeatureLabels));
+[photoOpacity,photoRotation,photoFlip].forEach(el=>el.addEventListener("input",()=>{}));
+photoFit.addEventListener("input",()=>{});
+updateEditorFeatureLabels();
+nextPhotoFeatureBtn.addEventListener("click",()=>nextPhotoBtn.click());
+bottomVideoLoop.addEventListener("change",()=>{ if(bottomVideo) bottomVideo.loop=bottomVideoLoop.checked; });
 
 /* ---------- photo controls ---------- */
 photoInput.addEventListener("change", async e=>{
@@ -762,8 +870,8 @@ function updateLabels(){
   wishSizeValue.textContent=wishSizeInput.value;
   wishOpacityValue.textContent=wishOpacity.value;
 }
-[wishCountInput,wishSpeedInput,wishSizeInput,wishOpacity].forEach(el=>{
-  el.addEventListener("input",()=>{updateLabels();makeWishes();});
+[wishCountInput,wishSpeedInput,wishSizeInput,wishOpacity,wishColor,wishSpacing].forEach(el=>{
+  el.addEventListener("input",()=>{updateLabels();makeWishes();updateEditorFeatureLabels();});
 });
 [wishDirection,wishText,minWishInput,maxWishInput].forEach(el=>el.addEventListener("input",makeWishes));
 randomWishBtn.addEventListener("click",makeWishes);
@@ -807,7 +915,7 @@ function updateCelebrantTextLabels(){
   celebrantTextSizeValue.textContent=celebrantTextSize.value;
   celebrantTextOpacityValue.textContent=celebrantTextOpacity.value;
 }
-[celebrantText,celebrantTextFont,celebrantTextSize,celebrantTextOpacity,celebrantTextColor,celebrantTextBackground].forEach(el=>{
+[celebrantText,celebrantTextFont,celebrantTextSize,celebrantTextOpacity,celebrantTextColor,celebrantTextBackground,celebrantTextAlign,celebrantTextSpacing,celebrantTextOutline].forEach(el=>{
   el.addEventListener("input",()=>{
     updateCelebrantTextLabels();
     if(el===celebrantTextSize && celebrantTextY < Number(celebrantTextSize.value)) celebrantTextY=Number(celebrantTextSize.value);
@@ -840,7 +948,7 @@ bottomVideoInput.addEventListener("change",()=>{
   if(bottomVideoUrl) URL.revokeObjectURL(bottomVideoUrl);
   bottomVideoUrl=URL.createObjectURL(file);
   const v=document.createElement("video");
-  v.src=bottomVideoUrl; v.muted=true; v.loop=true; v.playsInline=true; v.preload="auto";
+  v.src=bottomVideoUrl; v.muted=true; v.loop=bottomVideoLoop.checked; v.playsInline=true; v.preload="auto";
   v.addEventListener("loadeddata",()=>{ v.play().catch(()=>{}); });
   bottomVideo=v;
   bottomVideoStatus.textContent="Bottom video loaded. Drag it directly on the celebration screen.";
@@ -874,6 +982,12 @@ closeCameraBtn.addEventListener("click",()=>{
 /* ---------- video recording ---------- */
 startVideoBtn.addEventListener("click",async()=>{
   if(recording) return;
+
+  const countdown=Number(recordCountdown.value)||0;
+  if(countdown>0){
+    recordText.textContent=`STARTING IN ${countdown}`;
+    await new Promise(resolve=>{ let left=countdown; const timer=setInterval(()=>{ left--; recordText.textContent=left>0?`STARTING IN ${left}`:"READY"; if(left<=0){clearInterval(timer);resolve();}},1000); });
+  }
 
   try{
     const mic=await navigator.mediaDevices.getUserMedia({
@@ -926,7 +1040,7 @@ startVideoBtn.addEventListener("click",async()=>{
       "video/webm"
     ];
     const mime=mimeOptions.find(t=>MediaRecorder.isTypeSupported(t))||"";
-    videoRecorder=new MediaRecorder(combined,mime?{mimeType:mime,videoBitsPerSecond:6000000}:{});
+    videoRecorder=new MediaRecorder(combined,mime?{mimeType:mime,videoBitsPerSecond:videoQuality.value==="high"?9000000:6000000}:{});;
     videoRecorder.ondataavailable=e=>{if(e.data.size) videoChunks.push(e.data)};
     videoRecorder.onstop=()=>{
       const blob=new Blob(videoChunks,{type:videoRecorder.mimeType||"video/webm"});
