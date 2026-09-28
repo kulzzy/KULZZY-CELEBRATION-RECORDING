@@ -15,64 +15,89 @@
   --white:#fff;
   --panel:#0c1f3d;
   --line:#29456f;
+  --orange:#f05a2a;
 }
 *{box-sizing:border-box}
-html,body{margin:0;background:#020914;color:#fff;font-family:Arial,Helvetica,sans-serif}
-body{min-height:100vh;overflow-x:hidden}
+html,body{margin:0;width:100%;height:100%;background:#020914;color:#fff;font-family:Arial,Helvetica,sans-serif;overflow:hidden}
+body{overscroll-behavior:none}
 button,input,select{font:inherit}
 button{cursor:pointer}
-.app{max-width:1500px;margin:0 auto;padding:12px}
+.app{width:100%;height:100dvh;max-width:1500px;margin:0 auto;padding:6px;display:flex;flex-direction:column;gap:6px;overflow:hidden}
 header{
-  background:linear-gradient(135deg,#06152b,#102d55);
-  border:1px solid #31527f;border-radius:14px;padding:14px 16px;
-  display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;
+  flex:0 0 auto;height:44px;background:linear-gradient(135deg,#06152b,#102d55);
+  border:1px solid #31527f;border-radius:10px;padding:6px 10px;
+  display:flex;gap:8px;align-items:center;justify-content:space-between;overflow:hidden;
 }
-.brand{font-size:20px;font-weight:900;letter-spacing:.7px}
-.status{font-size:12px;color:#b9d0ee}
-.layout{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:14px;margin-top:14px}
-.stage-panel,.admin{
-  background:#07172e;border:1px solid #29456f;border-radius:14px;padding:12px;
-}
-.stage-wrap{display:flex;justify-content:center;align-items:center;min-height:50vh;background:#020914;border-radius:10px;overflow:hidden}
-.stage{
-  position:relative;width:min(768px,100%);aspect-ratio:768/1024;
-  overflow:hidden;background:#000;
-}
+.brand{font-size:15px;font-weight:900;letter-spacing:.5px;white-space:nowrap}
+.status{font-size:9px;color:#b9d0ee;white-space:nowrap}
+#recordStatus{font-size:11px;font-weight:900;white-space:nowrap}
+.layout{display:flex;flex:1;min-height:0;flex-direction:column;gap:5px;margin:0;overflow:hidden}
+.stage-panel{background:#07172e;border:1px solid #29456f;border-radius:10px;padding:5px;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+.stage-wrap{flex:1;min-height:0;display:flex;justify-content:center;align-items:center;background:#020914;border-radius:7px;overflow:hidden}
+.stage{position:relative;height:100%;max-height:100%;width:auto;max-width:100%;aspect-ratio:768/1024;overflow:hidden;background:#000}
 #previewCanvas{width:100%;height:100%;display:block}
-.controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
-.btn{
-  border:0;border-radius:9px;padding:11px 13px;font-weight:800;color:#fff;background:#18365e;
-}
+.stage-panel>.controls,.camera-box,.downloads,.notice{display:none}
+
+/* YouCut-style bottom editor area */
+.editor-dock{flex:0 0 38%;min-height:0;background:#06152b;border:1px solid #29456f;border-radius:10px;display:flex;flex-direction:column;overflow:hidden}
+.tool-strip{flex:0 0 70px;background:#fff;color:#e95b2d;display:flex;align-items:stretch;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;border-bottom:1px solid #cfd5dd}
+.tool-strip::-webkit-scrollbar{display:none}
+.tool-btn{min-width:78px;border:0;background:#fff;color:#e95b2d;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:5px 7px;font-weight:700}
+.tool-btn .tool-icon{font-size:24px;line-height:1;font-weight:900}
+.tool-btn .tool-label{font-size:9px;line-height:1;white-space:nowrap}
+.tool-btn.active{background:#fff3ee}
+.tool-btn.active .tool-label{font-weight:900}
+.timeline{flex:1;min-height:0;padding:5px 6px 4px;background:#f8f8f8;color:#1c1c1c;display:flex;flex-direction:column;gap:4px;overflow:hidden}
+.timeline-head{height:20px;display:flex;align-items:center;justify-content:space-between;font-size:10px;color:#777;font-weight:700}
+.layers{flex:1;min-height:0;display:flex;flex-direction:column;gap:3px;overflow:hidden}
+.layer-row{height:27px;display:flex;align-items:center;gap:5px;min-width:0}
+.layer-name{width:88px;flex:0 0 88px;font-size:9px;font-weight:800;color:#2e2e2e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.layer-track{height:24px;flex:1;min-width:0;border-radius:4px;background:#e6e8eb;border:1px solid #c9cdd2;display:flex;align-items:center;overflow:hidden;position:relative}
+.layer-block{height:20px;margin:1px 3px;border-radius:3px;display:flex;align-items:center;padding:0 7px;font-size:8px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.layer-block.photo{background:#d6b15a;color:#151515;width:58%}
+.layer-block.wish{background:#8dd6ff;color:#102030;width:72%}
+.layer-block.text{background:#b6e58d;color:#102030;width:46%}
+.layer-block.media{background:#efb0b0;color:#3b1111;width:34%}
+.layer-plus{width:27px;height:24px;border:1px dashed #a8a8a8;background:#fff;border-radius:4px;color:#777;font-size:17px;line-height:1;flex:0 0 27px}
+.layer-add-row{height:25px;display:flex;align-items:center;justify-content:center;border:1px dashed #aeb5bd;border-radius:4px;background:#fff;color:#777;font-size:10px;font-weight:800}
+
+/* Feature pages: one page at a time, no whole-page scrolling */
+.admin{position:fixed;z-index:50;left:6px;right:6px;bottom:6px;height:min(64dvh,560px);background:#07172e;border:1px solid #29456f;border-radius:12px;padding:7px;display:none;flex-direction:column;overflow:hidden;box-shadow:0 -10px 30px rgba(0,0,0,.45)}
+.admin.open{display:flex}
+.admin::before{content:"";display:block;width:42px;height:4px;border-radius:5px;background:#5a7193;margin:0 auto 5px;flex:0 0 auto}
+.admin .section{display:none;border:1px solid #29456f;border-radius:9px;padding:9px;background:#091c37;margin:0;min-height:0;flex:1;overflow:hidden}
+.admin .section.active{display:block}
+.section h3{margin:0 0 7px;font-size:13px;text-transform:uppercase;letter-spacing:.5px;color:#fff}
+.section label{display:block;font-size:10px;color:#b8cbe5;margin:5px 0 3px}
+input[type=file],input[type=text],input[type=number],select{width:100%;background:#06152b;color:#fff;border:1px solid #35547e;border-radius:7px;padding:7px;font-size:11px}
+input[type=range]{width:100%;height:18px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.small{font-size:9px;color:#9db3cf;line-height:1.25}
+.counter{font-size:10px;color:#cbd9ea;margin-top:4px}
+.controls{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}
+.btn{border:0;border-radius:7px;padding:8px 10px;font-size:10px;font-weight:800;color:#fff;background:#18365e}
 .btn:hover{filter:brightness(1.15)}
-.btn.gold{background:#b58a16;color:#fff}
-.btn.red{background:#c91616}
-.btn.green{background:#16834a}
-.btn.gray{background:#34445a}
-.section{border:1px solid #29456f;border-radius:11px;padding:12px;margin-bottom:10px;background:#091c37}
-.section h3{margin:0 0 10px;font-size:14px;text-transform:uppercase;letter-spacing:.6px}
-label{display:block;font-size:12px;color:#b8cbe5;margin:8px 0 5px}
-input[type=file],input[type=text],input[type=number],select{
-  width:100%;background:#06152b;color:#fff;border:1px solid #35547e;border-radius:8px;padding:9px;
-}
-input[type=range]{width:100%}
-.row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.small{font-size:11px;color:#9db3cf}
-.counter{font-size:12px;color:#cbd9ea;margin-top:7px}
-.record-dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#555;margin-right:6px}
+.btn.gold{background:#b58a16}.btn.red{background:#c91616}.btn.green{background:#16834a}.btn.gray{background:#34445a}
+.crop-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.crop-grid .counter{margin-top:2px}
+.bottom-picture-preview{margin-top:5px;background:#020914;border:1px solid #35547e;border-radius:7px;overflow:hidden;display:none;max-height:70px}
+#bottomPicturePreview{width:100%;display:block;max-height:70px;object-fit:contain}
+.record-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#555;margin-right:5px}
 .record-dot.on{background:#ff1b1b;animation:blink .75s infinite}
 @keyframes blink{50%{opacity:.25}}
-.camera-box{margin-top:8px;background:#000;border-radius:8px;overflow:hidden;display:none}
-#cameraVideo{width:100%;display:block}
-.downloads{display:grid;gap:6px;margin-top:8px}
-.downloads a{display:block;text-align:center;text-decoration:none;border-radius:8px;padding:9px;background:#214d7f;color:#fff;font-weight:800}
-.bottom-picture-preview{margin-top:8px;background:#020914;border:1px solid #35547e;border-radius:8px;overflow:hidden;display:none}
-#bottomPicturePreview{width:100%;display:block}
-.crop-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.crop-grid .counter{margin-top:3px}
-.notice{font-size:11px;line-height:1.4;color:#9eb6d4;margin-top:8px}
-@media(max-width:950px){
-  .layout{grid-template-columns:1fr}
-  .admin{order:2}
+
+.feature-close{position:absolute;right:9px;top:8px;width:27px;height:27px;border:0;border-radius:50%;background:#e21c1c;color:#fff;font-size:18px;font-weight:900;z-index:2}
+.section-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;height:calc(100% - 25px);overflow:hidden}
+.section-grid>.field-card{background:#06152b;border:1px solid #29456f;border-radius:7px;padding:6px;min-width:0;overflow:hidden}
+.field-card label{margin-top:2px}
+
+@media(max-width:520px){
+  .app{padding:4px;gap:4px}
+  header{height:38px;padding:5px 8px}
+  .brand{font-size:12px}.status{font-size:7px}.tool-strip{flex-basis:64px}.tool-btn{min-width:70px}.tool-btn .tool-icon{font-size:22px}.tool-btn .tool-label{font-size:8px}
+  .editor-dock{flex-basis:42%}
+  .layer-name{width:72px;flex-basis:72px;font-size:8px}.layer-row{height:24px}.layer-track{height:22px}.layer-block{height:18px;font-size:7px}
+  .admin{left:4px;right:4px;bottom:4px;height:min(67dvh,560px)}
 }
 </style>
 </head>
@@ -93,214 +118,159 @@ input[type=range]{width:100%}
         <canvas id="previewCanvas" width="768" height="1024"></canvas>
       </div>
     </div>
-
     <div class="controls">
       <button class="btn gold" id="randomWishBtn">NEW MILLION WISHES</button>
       <button class="btn" id="nextPhotoBtn">NEXT PHOTO</button>
       <button class="btn green" id="startVideoBtn">START VIDEO</button>
       <button class="btn red" id="stopVideoBtn" disabled>STOP & SAVE VIDEO</button>
     </div>
-
     <div class="camera-box" id="cameraBox">
       <video id="cameraVideo" autoplay muted playsinline></video>
     </div>
-
     <div class="downloads" id="downloads"></div>
-    <div class="notice">
-      Video recording captures the 768 × 1024 celebration canvas and microphone audio.
-      Camera preview is optional. Camera/microphone access requires browser permission and HTTPS
-      such as GitHub Pages.
-    </div>
+    <div class="notice">Video recording captures the 768 × 1024 celebration canvas and microphone audio. Camera/microphone access requires browser permission and HTTPS such as GitHub Pages.</div>
   </section>
 
-  <aside class="admin">
-    <div class="section">
-      <h3>1. Photo Upload</h3>
-      <input id="photoInput" type="file" accept="image/*" multiple>
-      <div class="counter" id="photoCounter">0 photos loaded</div>
-      <label>Photo slide time (seconds)</label>
-      <input id="slideTime" type="number" min="1" max="60" value="5">
-      <div class="controls">
-        <button class="btn" id="clearPhotosBtn">CLEAR PHOTOS</button>
-      </div>
+  <div class="editor-dock">
+    <div class="tool-strip" id="toolStrip">
+      <button class="tool-btn" data-section="Photo Upload"><span class="tool-icon">▣</span><span class="tool-label">PHOTOS</span></button>
+      <button class="tool-btn" data-section="Wishes"><span class="tool-icon">✦</span><span class="tool-label">WISHES</span></button>
+      <button class="tool-btn" data-section="Audio Recording"><span class="tool-icon">♪</span><span class="tool-label">AUDIO</span></button>
+      <button class="tool-btn" data-section="Video Recording"><span class="tool-icon">▶</span><span class="tool-label">VIDEO</span></button>
+      <button class="tool-btn" data-section="Bottom Picture"><span class="tool-icon">▧</span><span class="tool-label">PICTURE</span></button>
+      <button class="tool-btn" data-section="Bottom Video"><span class="tool-icon">▹</span><span class="tool-label">VIDEO CLIP</span></button>
+      <button class="tool-btn" data-section="Celebrant Name Text"><span class="tool-icon">T</span><span class="tool-label">TEXT</span></button>
+      <button class="tool-btn" data-section="Settings"><span class="tool-icon">⚙</span><span class="tool-label">SETTINGS</span></button>
     </div>
 
-    <div class="section">
-      <h3>2. Wishes</h3>
-      <div class="row">
-        <div>
-          <label>Minimum</label>
-          <input id="minWish" type="number" min="1000000" max="999000000000000" value="1000000">
-        </div>
-        <div>
-          <label>Maximum</label>
-          <input id="maxWish" type="number" min="1000000" max="999000000000000" value="999000000000000">
-        </div>
+    <div class="timeline">
+      <div class="timeline-head"><span>LAYERS</span><span>00:00</span></div>
+      <div class="layers" id="layers">
+        <div class="layer-row"><div class="layer-name">PHOTO</div><div class="layer-track"><div class="layer-block photo">CELEBRANT PHOTO</div></div><button class="layer-plus" data-add-layer="photo">+</button></div>
+        <div class="layer-row"><div class="layer-name">WISHES</div><div class="layer-track"><div class="layer-block wish">MOVING WISHES</div></div><button class="layer-plus" data-add-layer="wish">+</button></div>
+        <div class="layer-row"><div class="layer-name">TEXT</div><div class="layer-track"><div class="layer-block text">CELEBRANT NAME</div></div><button class="layer-plus" data-add-layer="text">+</button></div>
+        <div class="layer-row"><div class="layer-name">MEDIA</div><div class="layer-track"><div class="layer-block media">PICTURE / VIDEO</div></div><button class="layer-plus" data-add-layer="media">+</button></div>
       </div>
-      <label>Wishes per screen</label>
-      <input id="wishCount" type="range" min="4" max="28" value="14">
-      <div class="counter"><span id="wishCountValue">14</span> moving wishes</div>
-
-      <label>Wish speed</label>
-      <input id="wishSpeed" type="range" min="10" max="120" value="42">
-      <div class="counter"><span id="wishSpeedValue">42</span> speed</div>
-
-      <label>Wish size</label>
-      <input id="wishSize" type="range" min="10" max="36" value="18">
-      <div class="counter"><span id="wishSizeValue">18</span> px</div>
-
-      <div class="controls">
-        <button class="btn gold" id="regenerateBtn">GENERATE WISHES</button>
-      </div>
+      <button class="layer-add-row" id="addLayerBtn">+ ADD MORE LAYER</button>
     </div>
-
-    <div class="section">
-      <h3>3. Audio Recording</h3>
-      <div class="counter" id="audioStatus">Audio starts automatically with video recording.</div>
-      <audio id="audioPlayback" controls style="width:100%;margin-top:8px;display:none"></audio>
-      <div class="downloads" id="audioDownloads"></div>
-    </div>
-
-    <div class="section">
-      <h3>4. Video Recording</h3>
-      <label><input type="checkbox" id="cameraToggle"> Show camera preview while recording</label>
-      <div class="controls">
-        <button class="btn green" id="startCameraBtn">OPEN CAMERA</button>
-        <button class="btn gray" id="closeCameraBtn">CLOSE CAMERA</button>
-      </div>
-      <div class="small">The camera is not placed into the celebration canvas unless you choose to use it as an overlay in Settings.</div>
-    </div>
-
-    <div class="section">
-      <h3>5. Bottom Picture</h3>
-      <label>Add picture to the bottom of the video</label>
-      <input id="bottomPictureInput" type="file" accept="image/*">
-      <div class="counter" id="bottomPictureStatus">No bottom picture selected.</div>
-      <div class="crop-grid">
-        <div>
-          <label>Width</label>
-          <input id="bottomPictureWidth" type="range" min="80" max="700" value="260">
-          <div class="counter"><span id="bottomPictureWidthValue">260</span> px</div>
-        </div>
-        <div>
-          <label>Height</label>
-          <input id="bottomPictureHeight" type="range" min="40" max="350" value="130">
-          <div class="counter"><span id="bottomPictureHeightValue">130</span> px</div>
-        </div>
-      </div>
-      <label>Bottom position</label>
-      <input id="bottomPictureBottom" type="range" min="0" max="300" value="18">
-      <div class="counter"><span id="bottomPictureBottomValue">18</span> px from bottom</div>
-      <label>Horizontal position</label>
-      <input id="bottomPictureLeft" type="range" min="0" max="700" value="254">
-      <div class="counter"><span id="bottomPictureLeftValue">254</span> px from left</div>
-      <div class="bottom-picture-preview" id="bottomPicturePreviewBox"><img id="bottomPicturePreview" alt="Bottom picture preview"></div>
-      <div class="controls">
-        <button class="btn gray" id="clearBottomPictureBtn">REMOVE BOTTOM PICTURE</button>
-      </div>
-    </div>
-
-    <div class="section">
-      <h3>Bottom Video</h3>
-      <label>Add video to the bottom of the video</label>
-      <input id="bottomVideoInput" type="file" accept="video/*">
-      <div class="counter" id="bottomVideoStatus">No bottom video selected.</div>
-      <div class="crop-grid">
-        <div>
-          <label>Width</label>
-          <input id="bottomVideoWidth" type="range" min="80" max="700" value="260">
-          <div class="counter"><span id="bottomVideoWidthValue">260</span> px</div>
-        </div>
-        <div>
-          <label>Height</label>
-          <input id="bottomVideoHeight" type="range" min="40" max="350" value="130">
-          <div class="counter"><span id="bottomVideoHeightValue">130</span> px</div>
-        </div>
-      </div>
-      <label>Bottom position</label>
-      <input id="bottomVideoBottom" type="range" min="0" max="900" value="18">
-      <div class="counter"><span id="bottomVideoBottomValue">18</span> px from bottom</div>
-      <label>Horizontal position</label>
-      <input id="bottomVideoLeft" type="range" min="0" max="700" value="254">
-      <div class="counter"><span id="bottomVideoLeftValue">254</span> px from left</div>
-      <label>Video volume</label>
-      <input id="bottomVideoVolume" type="range" min="0" max="100" value="100">
-      <div class="counter"><span id="bottomVideoVolumeValue">100</span>%</div>
-      <div class="small">Drag the bottom video directly on the celebration screen to move it. It is cropped inside its selected size.</div>
-      <div class="controls">
-        <button class="btn gray" id="clearBottomVideoBtn">REMOVE BOTTOM VIDEO</button>
-      </div>
-    </div>
-
-    <div class="section">
-      <h3>Celebrant Name Text</h3>
-      <label>Text</label>
-      <input id="celebrantText" type="text" placeholder="Enter celebrant name">
-      <label>Font style</label>
-      <select id="celebrantTextFont">
-        <option value="Arial">Arial</option>
-        <option value="Georgia">Georgia</option>
-        <option value="Trebuchet MS">Trebuchet MS</option>
-        <option value="Verdana">Verdana</option>
-        <option value="Courier New">Courier New</option>
-      </select>
-      <label>Text size</label>
-      <input id="celebrantTextSize" type="range" min="18" max="100" value="42">
-      <div class="counter"><span id="celebrantTextSizeValue">42</span> px</div>
-      <label>Text faintness</label>
-      <input id="celebrantTextOpacity" type="range" min="20" max="100" value="72">
-      <div class="counter"><span id="celebrantTextOpacityValue">72</span>%</div>
-      <label>Text color</label>
-      <input id="celebrantTextColor" type="color" value="#ffffff" style="width:100%;height:42px;padding:3px;background:#06152b;border:1px solid #35547e;border-radius:8px">
-      <label>Text background</label>
-      <select id="celebrantTextBackground">
-        <option value="none">None</option>
-        <option value="black">Black</option>
-        <option value="white">White</option>
-        <option value="red">Red</option>
-        <option value="gold">Gold</option>
-        <option value="navy">Navy</option>
-        <option value="transparent">Faint black</option>
-      </select>
-      <div class="small">Drag the name up or down directly on the picture.</div>
-    </div>
-
-    <div class="section">
-      <h3>6. Settings</h3>
-      <label>Photo fit</label>
-      <select id="photoFit">
-        <option value="cover">Fit and crop to picture box</option>
-        <option value="contain">Shrink to fit whole picture</option>
-      </select>
-
-      <label>Wish opacity</label>
-      <input id="wishOpacity" type="range" min="20" max="100" value="88">
-      <div class="counter"><span id="wishOpacityValue">88</span>%</div>
-
-      <label>Wish direction</label>
-      <select id="wishDirection">
-        <option value="up">Rise upward</option>
-        <option value="diagonal">Rise diagonally</option>
-        <option value="left">Move left</option>
-        <option value="right">Move right</option>
-      </select>
-
-      <label>Wish text</label>
-      <input id="wishText" type="text" value="GOOD THINGS OF LIFE TO YOU">
-
-      <label>Camera overlay</label>
-      <select id="cameraOverlay">
-        <option value="off">Off</option>
-        <option value="small">Small corner</option>
-        <option value="large">Large corner</option>
-      </select>
-    </div>
-  </aside>
+  </div>
 </div>
-</div>
+
+<aside class="admin" id="featurePages">
+  <button class="feature-close" id="featureClose" aria-label="Close feature page">×</button>
+  <div class="section">
+    <h3>1. Photo Upload</h3>
+    <input id="photoInput" type="file" accept="image/*" multiple>
+    <div class="counter" id="photoCounter">0 photos loaded</div>
+    <label>Photo slide time (seconds)</label>
+    <input id="slideTime" type="number" min="1" max="60" value="5">
+    <div class="controls"><button class="btn" id="clearPhotosBtn">CLEAR PHOTOS</button></div>
+  </div>
+  <div class="section">
+    <h3>2. Wishes</h3>
+    <div class="section-grid">
+      <div class="field-card"><label>Minimum</label><input id="minWish" type="number" min="1000000" max="999000000000000" value="1000000"><label>Maximum</label><input id="maxWish" type="number" min="1000000" max="999000000000000" value="999000000000000"></div>
+      <div class="field-card"><label>Wishes per screen</label><input id="wishCount" type="range" min="4" max="28" value="14"><div class="counter"><span id="wishCountValue">14</span> moving wishes</div><label>Wish speed</label><input id="wishSpeed" type="range" min="10" max="120" value="42"><div class="counter"><span id="wishSpeedValue">42</span> speed</div><label>Wish size</label><input id="wishSize" type="range" min="10" max="36" value="18"><div class="counter"><span id="wishSizeValue">18</span> px</div></div>
+    </div>
+    <div class="controls"><button class="btn gold" id="regenerateBtn">GENERATE WISHES</button></div>
+  </div>
+  <div class="section">
+    <h3>3. Audio Recording</h3>
+    <div class="counter" id="audioStatus">Audio starts automatically with video recording.</div>
+    <audio id="audioPlayback" controls style="width:100%;margin-top:8px;display:none"></audio>
+    <div class="downloads" id="audioDownloads"></div>
+  </div>
+  <div class="section">
+    <h3>4. Video Recording</h3>
+    <label><input type="checkbox" id="cameraToggle"> Show camera preview while recording</label>
+    <div class="controls"><button class="btn green" id="startCameraBtn">OPEN CAMERA</button><button class="btn gray" id="closeCameraBtn">CLOSE CAMERA</button></div>
+    <div class="small">The camera is not placed into the celebration canvas unless you choose to use it as an overlay in Settings.</div>
+  </div>
+  <div class="section">
+    <h3>5. Bottom Picture</h3>
+    <div class="section-grid">
+      <div class="field-card"><label>Add picture to the bottom of the video</label><input id="bottomPictureInput" type="file" accept="image/*"><div class="counter" id="bottomPictureStatus">No bottom picture selected.</div><div class="bottom-picture-preview" id="bottomPicturePreviewBox"><img id="bottomPicturePreview" alt="Bottom picture preview"></div></div>
+      <div class="field-card"><div class="crop-grid"><div><label>Width</label><input id="bottomPictureWidth" type="range" min="80" max="700" value="260"><div class="counter"><span id="bottomPictureWidthValue">260</span> px</div></div><div><label>Height</label><input id="bottomPictureHeight" type="range" min="40" max="350" value="130"><div class="counter"><span id="bottomPictureHeightValue">130</span> px</div></div></div><label>Bottom position</label><input id="bottomPictureBottom" type="range" min="0" max="300" value="18"><div class="counter"><span id="bottomPictureBottomValue">18</span> px from bottom</div><label>Horizontal position</label><input id="bottomPictureLeft" type="range" min="0" max="700" value="254"><div class="counter"><span id="bottomPictureLeftValue">254</span> px from left</div></div>
+    </div>
+    <div class="small">Drag the picture directly on the celebration screen to move it.</div>
+    <div class="controls"><button class="btn gray" id="clearBottomPictureBtn">REMOVE BOTTOM PICTURE</button></div>
+  </div>
+  <div class="section">
+    <h3>Bottom Video</h3>
+    <div class="section-grid">
+      <div class="field-card"><label>Add video to the bottom of the video</label><input id="bottomVideoInput" type="file" accept="video/*"><div class="counter" id="bottomVideoStatus">No bottom video selected.</div></div>
+      <div class="field-card"><div class="crop-grid"><div><label>Width</label><input id="bottomVideoWidth" type="range" min="80" max="700" value="260"><div class="counter"><span id="bottomVideoWidthValue">260</span> px</div></div><div><label>Height</label><input id="bottomVideoHeight" type="range" min="40" max="350" value="130"><div class="counter"><span id="bottomVideoHeightValue">130</span> px</div></div></div><label>Bottom position</label><input id="bottomVideoBottom" type="range" min="0" max="900" value="18"><div class="counter"><span id="bottomVideoBottomValue">18</span> px from bottom</div><label>Horizontal position</label><input id="bottomVideoLeft" type="range" min="0" max="700" value="254"><div class="counter"><span id="bottomVideoLeftValue">254</span> px from left</div><label>Video volume</label><input id="bottomVideoVolume" type="range" min="0" max="100" value="100"><div class="counter"><span id="bottomVideoVolumeValue">100</span>%</div></div>
+    </div>
+    <div class="small">Drag the bottom video directly on the celebration screen to move it. It is cropped inside its selected size.</div>
+    <div class="controls"><button class="btn gray" id="clearBottomVideoBtn">REMOVE BOTTOM VIDEO</button></div>
+  </div>
+  <div class="section">
+    <h3>Celebrant Name Text</h3>
+    <div class="section-grid">
+      <div class="field-card"><label>Text</label><input id="celebrantText" type="text" placeholder="Enter celebrant name"><label>Font style</label><select id="celebrantTextFont"><option value="Arial">Arial</option><option value="Georgia">Georgia</option><option value="Trebuchet MS">Trebuchet MS</option><option value="Verdana">Verdana</option><option value="Courier New">Courier New</option></select><label>Text size</label><input id="celebrantTextSize" type="range" min="18" max="100" value="42"><div class="counter"><span id="celebrantTextSizeValue">42</span> px</div></div>
+      <div class="field-card"><label>Text faintness</label><input id="celebrantTextOpacity" type="range" min="20" max="100" value="72"><div class="counter"><span id="celebrantTextOpacityValue">72</span>%</div><label>Text color</label><input id="celebrantTextColor" type="color" value="#ffffff" style="width:100%;height:38px;padding:3px;background:#06152b;border:1px solid #35547e;border-radius:7px"><label>Text background</label><select id="celebrantTextBackground"><option value="none">None</option><option value="black">Black</option><option value="white">White</option><option value="red">Red</option><option value="gold">Gold</option><option value="navy">Navy</option><option value="transparent">Faint black</option></select></div>
+    </div>
+    <div class="small">Drag the name up or down directly on the picture.</div>
+  </div>
+  <div class="section">
+    <h3>6. Settings</h3>
+    <div class="section-grid">
+      <div class="field-card"><label>Photo fit</label><select id="photoFit"><option value="cover">Fit and crop to picture box</option><option value="contain">Shrink to fit whole picture</option></select><label>Wish opacity</label><input id="wishOpacity" type="range" min="20" max="100" value="88"><div class="counter"><span id="wishOpacityValue">88</span>%</div></div>
+      <div class="field-card"><label>Wish direction</label><select id="wishDirection"><option value="up">Rise upward</option><option value="diagonal">Rise diagonally</option><option value="left">Move left</option><option value="right">Move right</option></select><label>Wish text</label><input id="wishText" type="text" value="GOOD THINGS OF LIFE TO YOU"><label>Camera overlay</label><select id="cameraOverlay"><option value="off">Off</option><option value="small">Small corner</option><option value="large">Large corner</option></select></div>
+    </div>
+  </div>
+</aside>
 
 <script>
 "use strict";
+
+
+/* =========================================================
+   YOUCUT-STYLE EDITOR INTERFACE ONLY
+   Keeps all existing Studio functions/IDs intact.
+========================================================= */
+const featurePages = document.getElementById("featurePages");
+const featureClose = document.getElementById("featureClose");
+const toolButtons = [...document.querySelectorAll(".tool-btn")];
+const featureSections = [...featurePages.querySelectorAll(".section")];
+
+function openFeaturePage(title){
+  const section = featureSections.find(s => (s.querySelector("h3")?.textContent || "").includes(title));
+  if(!section) return;
+  featureSections.forEach(s => s.classList.remove("active"));
+  section.classList.add("active");
+  toolButtons.forEach(b => b.classList.toggle("active", b.dataset.section === title));
+  featurePages.classList.add("open");
+}
+function closeFeaturePage(){
+  featurePages.classList.remove("open");
+  featureSections.forEach(s => s.classList.remove("active"));
+  toolButtons.forEach(b => b.classList.remove("active"));
+}
+
+toolButtons.forEach(btn => btn.addEventListener("click", () => {
+  const title = btn.dataset.section;
+  if(featurePages.classList.contains("open") && btn.classList.contains("active")) closeFeaturePage();
+  else openFeaturePage(title);
+}));
+featureClose.addEventListener("click", closeFeaturePage);
+
+/* Four visible editor layers + room to add more. */
+const layers = document.getElementById("layers");
+document.querySelectorAll(".layer-plus").forEach(btn => btn.addEventListener("click", () => {
+  const type = btn.dataset.addLayer || "media";
+  const row = document.createElement("div");
+  row.className = "layer-row";
+  row.innerHTML = `<div class="layer-name">${type.toUpperCase()} ${layers.children.length + 1}</div><div class="layer-track"><div class="layer-block ${type === "photo" ? "photo" : type === "wish" ? "wish" : type === "text" ? "text" : "media"}">NEW ${type.toUpperCase()} LAYER</div></div><button class="layer-plus" type="button">+</button>`;
+  layers.appendChild(row);
+}));
+
+document.getElementById("addLayerBtn").addEventListener("click", () => {
+  const row = document.createElement("div");
+  row.className = "layer-row";
+  row.innerHTML = `<div class="layer-name">NEW LAYER</div><div class="layer-track"><div class="layer-block media" style="width:28%">EMPTY LAYER</div></div><button class="layer-plus" type="button">+</button>`;
+  layers.appendChild(row);
+});
 
 /*
   KULZZY CELEBRATION STUDIO
