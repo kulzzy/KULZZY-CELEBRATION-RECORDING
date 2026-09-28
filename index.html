@@ -77,14 +77,15 @@ header{
 .layer-add-row{height:25px;display:flex;align-items:center;justify-content:center;border:1px dashed #aeb5bd;border-radius:4px;background:#fff;color:#777;font-size:10px;font-weight:800}
 
 /* Feature pages: one page at a time, no whole-page scrolling */
-.admin{position:fixed;z-index:50;left:6px;right:6px;bottom:6px;height:min(64dvh,560px);background:#07172e;border:1px solid #29456f;border-radius:12px;padding:7px;display:none;flex-direction:column;overflow:hidden;box-shadow:0 -10px 30px rgba(0,0,0,.45)}
+.admin{position:fixed;z-index:50;left:3%;right:3%;bottom:6px;height:min(46dvh,430px);background:#07172e;border:1px solid #29456f;border-radius:12px;padding:7px;display:none;flex-direction:column;overflow:hidden;box-shadow:0 -10px 30px rgba(0,0,0,.45)}
 .admin.open{display:flex}
 .admin::before{content:"";display:block;width:42px;height:4px;border-radius:5px;background:#5a7193;margin:0 auto 5px;flex:0 0 auto}
 .admin .section{display:none;border:1px solid #29456f;border-radius:9px;padding:9px;background:#091c37;margin:0;min-height:0;flex:1;overflow:hidden}
 .admin .section.active{display:block}
 .section h3{margin:0 0 7px;font-size:13px;text-transform:uppercase;letter-spacing:.5px;color:#fff}
 .section label{display:block;font-size:10px;color:#b8cbe5;margin:5px 0 3px}
-input[type=file],input[type=text],input[type=number],select{width:100%;background:#06152b;color:#fff;border:1px solid #35547e;border-radius:7px;padding:7px;font-size:11px}
+input[type=file],input[type=text],input[type=number],textarea,select{width:100%;background:#06152b;color:#fff;border:1px solid #35547e;border-radius:7px;padding:7px;font-size:11px}
+textarea{resize:none;min-height:74px;line-height:1.35}
 input[type=range]{width:100%;height:18px}
 .row{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 .small{font-size:9px;color:#9db3cf;line-height:1.25}
@@ -112,7 +113,7 @@ input[type=range]{width:100%;height:18px}
   .brand{font-size:12px}.status{font-size:7px}.tool-strip{flex-basis:64px}.tool-btn{min-width:70px}.tool-btn .tool-icon{font-size:22px}.tool-btn .tool-label{font-size:8px}
   .editor-dock{flex-basis:42%}
   .layer-name{width:72px;flex-basis:72px;font-size:8px}.layer-row{height:24px}.layer-track{height:22px}.layer-block{height:18px;font-size:7px}
-  .admin{left:4px;right:4px;bottom:4px;height:min(67dvh,560px)}
+  .admin{left:3%;right:3%;bottom:4px;height:min(49dvh,430px)}
 }
 </style>
 </head>
@@ -225,16 +226,15 @@ input[type=range]{width:100%;height:18px}
   <div class="section">
     <h3>Bottom Video</h3>
     <div class="section-grid">
-      <div class="field-card"><label>Add video to the bottom of the video</label><input id="bottomVideoInput" type="file" accept="video/*"><div class="counter" id="bottomVideoStatus">No bottom video selected.</div></div>
-      <div class="field-card"><div class="crop-grid"><div><label>Width</label><input id="bottomVideoWidth" type="range" min="80" max="700" value="260"><div class="counter"><span id="bottomVideoWidthValue">260</span> px</div></div><div><label>Height</label><input id="bottomVideoHeight" type="range" min="40" max="350" value="130"><div class="counter"><span id="bottomVideoHeightValue">130</span> px</div></div></div><label>Bottom position</label><input id="bottomVideoBottom" type="range" min="0" max="900" value="18"><div class="counter"><span id="bottomVideoBottomValue">18</span> px from bottom</div><label>Horizontal position</label><input id="bottomVideoLeft" type="range" min="0" max="700" value="254"><div class="counter"><span id="bottomVideoLeftValue">254</span> px from left</div><label>Video volume</label><input id="bottomVideoVolume" type="range" min="0" max="100" value="100"><div class="counter"><span id="bottomVideoVolumeValue">100</span>%</div><label>Video opacity</label><input id="bottomVideoOpacity" type="range" min="10" max="100" value="100"><div class="counter"><span id="bottomVideoOpacityValue">100</span>%</div><label class="inline-check"><input id="bottomVideoLoop" type="checkbox" checked> Loop video</label></div>
+      <div class="field-card"><label>Add videos to the bottom of the video</label><input id="bottomVideoInput" type="file" accept="video/*" multiple><div class="counter" id="bottomVideoStatus">No bottom videos selected.</div><select id="bottomVideoSelect" style="margin-top:6px"><option value="-1">Select video</option></select><div class="controls"><button class="btn gray" id="removeSelectedVideoBtn" type="button">REMOVE SELECTED</button><button class="btn gray" id="clearBottomVideoBtn" type="button">REMOVE ALL VIDEOS</button></div></div>
+      <div class="field-card"><div class="crop-grid"><div><label>Crop width</label><input id="bottomVideoWidth" type="range" min="80" max="700" value="260"><div class="counter"><span id="bottomVideoWidthValue">260</span> px</div></div><div><label>Crop height</label><input id="bottomVideoHeight" type="range" min="40" max="350" value="130"><div class="counter"><span id="bottomVideoHeightValue">130</span> px</div></div></div><label>Bottom position</label><input id="bottomVideoBottom" type="range" min="0" max="900" value="18"><div class="counter"><span id="bottomVideoBottomValue">18</span> px from bottom</div><label>Horizontal position</label><input id="bottomVideoLeft" type="range" min="0" max="700" value="254"><div class="counter"><span id="bottomVideoLeftValue">254</span> px from left</div><label>Rotation</label><input id="bottomVideoRotation" type="range" min="-180" max="180" value="0"><div class="counter"><span id="bottomVideoRotationValue">0</span>°</div><label class="inline-check"><input id="bottomVideoFlip" type="checkbox"> Flip horizontally</label><label>Filter</label><select id="bottomVideoFilter"><option value="none">None</option><option value="grayscale(1)">Grayscale</option><option value="sepia(1)">Sepia</option><option value="contrast(1.35)">High contrast</option><option value="brightness(1.2)">Bright</option><option value="saturate(1.6)">Saturated</option><option value="blur(2px)">Soft blur</option></select><label>Video volume</label><input id="bottomVideoVolume" type="range" min="0" max="100" value="100"><div class="counter"><span id="bottomVideoVolumeValue">100</span>%</div><label>Video opacity</label><input id="bottomVideoOpacity" type="range" min="10" max="100" value="100"><div class="counter"><span id="bottomVideoOpacityValue">100</span>%</div><label class="inline-check"><input id="bottomVideoLoop" type="checkbox" checked> Loop video</label></div>
     </div>
-    <div class="small">Drag the bottom video directly on the celebration screen to move it. It is cropped inside its selected size.</div>
-    <div class="controls"><button class="btn gray" id="clearBottomVideoBtn">REMOVE BOTTOM VIDEO</button></div>
+    <div class="small">Each added video can be selected, cropped, moved, rotated, flipped and filtered independently. Drag videos directly on the celebration screen.</div>
   </div>
   <div class="section">
     <h3>Celebrant Name Text</h3>
     <div class="section-grid">
-      <div class="field-card"><label>Text</label><input id="celebrantText" type="text" placeholder="Enter celebrant name"><label>Font style</label><select id="celebrantTextFont"><option value="Arial">Arial</option><option value="Georgia">Georgia</option><option value="Trebuchet MS">Trebuchet MS</option><option value="Verdana">Verdana</option><option value="Courier New">Courier New</option></select><label>Text size</label><input id="celebrantTextSize" type="range" min="18" max="100" value="42"><div class="counter"><span id="celebrantTextSizeValue">42</span> px</div><label>Alignment</label><select id="celebrantTextAlign"><option value="center">Center</option><option value="left">Left</option><option value="right">Right</option></select></div>
+      <div class="field-card"><label>Text</label><textarea id="celebrantText" placeholder="Enter celebrant name"></textarea><label>Font style</label><select id="celebrantTextFont"><option value="Arial">Arial</option><option value="Georgia">Georgia</option><option value="Trebuchet MS">Trebuchet MS</option><option value="Verdana">Verdana</option><option value="Courier New">Courier New</option></select><label>Text size</label><input id="celebrantTextSize" type="range" min="18" max="100" value="42"><div class="counter"><span id="celebrantTextSizeValue">42</span> px</div><label>Alignment</label><select id="celebrantTextAlign"><option value="center">Center</option><option value="left">Left</option><option value="right">Right</option></select></div>
       <div class="field-card"><label>Text faintness</label><input id="celebrantTextOpacity" type="range" min="20" max="100" value="72"><div class="counter"><span id="celebrantTextOpacityValue">72</span>%</div><label>Text color</label><input id="celebrantTextColor" type="color" value="#ffffff" style="width:100%;height:38px;padding:3px;background:#06152b;border:1px solid #35547e;border-radius:7px"><label>Text background</label><select id="celebrantTextBackground"><option value="none">None</option><option value="black">Black</option><option value="white">White</option><option value="red">Red</option><option value="gold">Gold</option><option value="navy">Navy</option><option value="transparent">Faint black</option></select><label>Letter spacing</label><input id="celebrantTextSpacing" type="range" min="0" max="12" value="0"><div class="counter"><span id="celebrantTextSpacingValue">0</span> px</div><label class="inline-check"><input id="celebrantTextOutline" type="checkbox" checked> Text outline</label></div>
     </div>
     <div class="small">Drag the name up or down directly on the picture.</div>
@@ -294,7 +294,9 @@ function applyLayerDelete(row,type){
   if(type==="text") celebrantText.value="";
   if(type==="media"){
     bottomPicture=null; bottomVideo=null;
+    bottomVideos.forEach(item=>item.url&&URL.revokeObjectURL(item.url)); bottomVideos=[]; activeBottomVideoIndex=-1; refreshVideoList();
   }
+  scheduleSaveJob();
 }
 function wireLayerRow(row){
   const plus=row.querySelector(".layer-plus");
@@ -418,6 +420,11 @@ const bottomVideoVolumeValue = document.getElementById("bottomVideoVolumeValue")
 const bottomVideoOpacity = document.getElementById("bottomVideoOpacity");
 const bottomVideoOpacityValue = document.getElementById("bottomVideoOpacityValue");
 const bottomVideoLoop = document.getElementById("bottomVideoLoop");
+const bottomVideoRotation = document.getElementById("bottomVideoRotation");
+const bottomVideoFlip = document.getElementById("bottomVideoFlip");
+const bottomVideoFilter = document.getElementById("bottomVideoFilter");
+const bottomVideoSelect = document.getElementById("bottomVideoSelect");
+const removeSelectedVideoBtn = document.getElementById("removeSelectedVideoBtn");
 const clearBottomVideoBtn = document.getElementById("clearBottomVideoBtn");
 
 const celebrantText = document.getElementById("celebrantText");
@@ -456,6 +463,8 @@ let bottomPicture = null;
 let bottomPictureUrl = null;
 let bottomVideo = null;
 let bottomVideoUrl = null;
+let bottomVideos = [];
+let activeBottomVideoIndex = -1;
 
 let celebrantTextY = H - 120;
 let bottomMediaX = 254;
@@ -597,7 +606,14 @@ function drawCurrentPhoto(){
   ctx.restore();
 }
 
-function getBottomMediaRect(kind){
+function getBottomMediaRect(kind, item=null){
+  if(kind==="video" && item){
+    const w=Math.max(1,Math.min(W,Number(item.width)||260));
+    const h=Math.max(1,Math.min(H,Number(item.height)||130));
+    const x=Math.max(0,Math.min(W-w,Number(item.left)||0));
+    const bottom=Math.max(0,Number(item.bottom)||0);
+    return {x,y:Math.max(0,Math.min(H-h,H-h-bottom)),w,h};
+  }
   const widthEl=kind==="video"?bottomVideoWidth:bottomPictureWidth;
   const heightEl=kind==="video"?bottomVideoHeight:bottomPictureHeight;
   const leftEl=kind==="video"?bottomVideoLeft:bottomPictureLeft;
@@ -610,66 +626,73 @@ function getBottomMediaRect(kind){
   return {x,y,w,h};
 }
 
-function drawBottomMedia(media,kind){
-  if(!media || !media.readyState && kind==="video" || (kind==="video" && media.readyState<2) || (kind==="image" && !media.complete)) return;
-  const box=getBottomMediaRect(kind);
+function drawBottomMedia(media,kind,item=null){
+  if(!media || (kind==="video" && media.readyState<2) || (kind==="image" && !media.complete)) return;
+  const box=getBottomMediaRect(kind,item);
   const opacityEl=kind==="video"?bottomVideoOpacity:bottomPictureOpacity;
-  const rotationEl=kind==="video"?null:bottomPictureRotation;
-  const opacity=(Number(opacityEl?.value)||100)/100;
-  const angle=rotationEl ? (Number(rotationEl.value)||0)*Math.PI/180 : 0;
+  const rotationEl=kind==="video"?bottomVideoRotation:bottomPictureRotation;
+  const opacity=(Number(item?.opacity ?? opacityEl?.value)||100)/100;
+  const angle=(Number(item?.rotation ?? rotationEl?.value)||0)*Math.PI/180;
+  const flip=kind==="video" ? !!item?.flip : false;
+  const filter=kind==="video" ? (item?.filter||"none") : "none";
   const iw=media.videoWidth||media.naturalWidth||media.width;
   const ih=media.videoHeight||media.naturalHeight||media.height;
   if(!iw||!ih) return;
   const scale=Math.max(box.w/iw,box.h/ih);
   const dw=iw*scale, dh=ih*scale;
-  const dx=box.x+(box.w-dw)/2, dy=box.y+(box.h-dh)/2;
   ctx.save();
   ctx.globalAlpha=opacity;
+  ctx.filter=filter;
   ctx.translate(box.x+box.w/2,box.y+box.h/2);
   ctx.rotate(angle);
+  ctx.scale(flip?-1:1,1);
   ctx.beginPath();
   ctx.rect(-box.w/2,-box.h/2,box.w,box.h);
   ctx.clip();
-  ctx.drawImage(media,dx-(box.x+box.w/2),dy-(box.y+box.h/2),dw,dh);
+  ctx.drawImage(media,-dw/2,-dh/2,dw,dh);
   ctx.restore();
 }
 
 function drawBottomPicture(){
   if(bottomPicture) drawBottomMedia(bottomPicture,"image");
-  if(bottomVideo) drawBottomMedia(bottomVideo,"video");
+  for(const item of bottomVideos){ if(item.video) drawBottomMedia(item.video,"video",item); }
 }
 
 function drawCelebrantText(){
-  const text=celebrantText.value.trim();
-  if(!text) return;
+  const text=celebrantText.value;
+  if(!text.trim()) return;
   const size=Math.max(18,Number(celebrantTextSize.value)||42);
-  const y=Math.max(size,Math.min(H-size,celebrantTextY));
+  const lines=text.split(/\n/);
+  const lineHeight=size*1.25;
+  const totalHeight=lines.length*lineHeight;
+  const centerY=Math.max(totalHeight/2,Math.min(H-totalHeight/2,celebrantTextY));
   ctx.save();
   ctx.textAlign=celebrantTextAlign.value||"center";
   ctx.textBaseline="middle";
   ctx.font=`700 ${size}px "${celebrantTextFont.value}", Arial, sans-serif`;
   ctx.globalAlpha=(Number(celebrantTextOpacity.value)||72)/100;
   const spacing=Number(celebrantTextSpacing.value)||0;
-  const textWidth=ctx.measureText(text).width + Math.max(0,text.length-1)*spacing;
-  const textX=celebrantTextAlign.value==="left" ? 24 : celebrantTextAlign.value==="right" ? W-24 : W/2;
   const bg=celebrantTextBackground.value;
-  if(bg!=="none") {
-    const padX=18, padY=10;
-    const bgColor={black:"#000000",white:"#ffffff",red:"#d71920",gold:"#d8ad35",navy:"#06152b",transparent:"rgba(0,0,0,.38)"}[bg]||"transparent";
-    ctx.fillStyle=bgColor;
-    const bgX=celebrantTextAlign.value==="left" ? textX-padX : celebrantTextAlign.value==="right" ? textX-textWidth-padX : textX-textWidth/2-padX;
-    ctx.fillRect(bgX,y-size/2-padY,textWidth+padX*2,size+padY*2);
-  }
-  ctx.fillStyle=celebrantTextColor.value||"#ffffff";
-  ctx.shadowColor="rgba(0,0,0,.55)";
-  ctx.shadowBlur=5;
-  if(celebrantTextOutline.checked){ ctx.lineWidth=3; ctx.strokeStyle="rgba(0,0,0,.65)"; ctx.strokeText(text,textX,y); }
-  if(spacing>0){
-    let total=textWidth, start=celebrantTextAlign.value==="left"?textX:celebrantTextAlign.value==="right"?textX-total:textX-total/2;
-    for(const ch of text){ const cw=ctx.measureText(ch).width; ctx.fillText(ch,start+cw/2,y); start+=cw+spacing; }
-  }else ctx.fillText(text,textX,y);
-  ctx.restore();
-  ctx.globalAlpha=1;
+  lines.forEach((line,index)=>{
+    const y=centerY+(index-(lines.length-1)/2)*lineHeight;
+    const textWidth=ctx.measureText(line).width + Math.max(0,line.length-1)*spacing;
+    const textX=celebrantTextAlign.value==="left" ? 24 : celebrantTextAlign.value==="right" ? W-24 : W/2;
+    if(bg!=="none") {
+      const padX=18,padY=8;
+      const bgColor={black:"#000000",white:"#ffffff",red:"#d71920",gold:"#d8ad35",navy:"#06152b",transparent:"rgba(0,0,0,.38)"}[bg]||"transparent";
+      ctx.fillStyle=bgColor;
+      const bgX=celebrantTextAlign.value==="left" ? textX-padX : celebrantTextAlign.value==="right" ? textX-textWidth-padX : textX-textWidth/2-padX;
+      ctx.fillRect(bgX,y-size/2-padY,textWidth+padX*2,size+padY*2);
+    }
+    ctx.fillStyle=celebrantTextColor.value||"#ffffff";
+    ctx.shadowColor="rgba(0,0,0,.55)"; ctx.shadowBlur=5;
+    if(celebrantTextOutline.checked){ ctx.lineWidth=3; ctx.strokeStyle="rgba(0,0,0,.65)"; ctx.strokeText(line,textX,y); }
+    if(spacing>0){
+      let startX=celebrantTextAlign.value==="left"?textX:celebrantTextAlign.value==="right"?textX-textWidth:textX-textWidth/2;
+      for(const ch of line){ const cw=ctx.measureText(ch).width; ctx.fillText(ch,startX+cw/2,y); startX+=cw+spacing; }
+    }else ctx.fillText(line,textX,y);
+  });
+  ctx.restore(); ctx.globalAlpha=1;
 }
 
 function getCanvasPointerY(event){
@@ -687,11 +710,14 @@ function pointInRect(p,r){ return p.x>=r.x && p.x<=r.x+r.w && p.y>=r.y && p.y<=r
 
 canvas.addEventListener("pointerdown",event=>{
   const p=getCanvasPointer(event);
-  if(bottomVideo && pointInRect(p,getBottomMediaRect("video"))){
-    draggingBottomMedia=true;
-    const r=getBottomMediaRect("video");
-    bottomMediaDragOffsetX=p.x-r.x; bottomMediaDragOffsetY=p.y-r.y;
-    canvas.setPointerCapture?.(event.pointerId); event.preventDefault(); return;
+  for(let i=bottomVideos.length-1;i>=0;i--){
+    const item=bottomVideos[i]; const r=getBottomMediaRect("video",item);
+    if(pointInRect(p,r)){
+      activeBottomVideoIndex=i; syncActiveVideoControls();
+      draggingBottomMedia=true;
+      bottomMediaDragOffsetX=p.x-r.x; bottomMediaDragOffsetY=p.y-r.y;
+      canvas.setPointerCapture?.(event.pointerId); event.preventDefault(); return;
+    }
   }
   if(bottomPicture && pointInRect(p,getBottomMediaRect("image"))){
     draggingBottomMedia=true;
@@ -710,15 +736,19 @@ canvas.addEventListener("pointerdown",event=>{
 canvas.addEventListener("pointermove",event=>{
   if(draggingBottomMedia){
     const p=getCanvasPointer(event);
-    const kind=bottomVideo?"video":"image";
-    const r=getBottomMediaRect(kind);
-    const x=Math.max(0,Math.min(W-r.w,p.x-bottomMediaDragOffsetX));
-    const y=Math.max(0,Math.min(H-r.h,p.y-bottomMediaDragOffsetY));
-    const leftEl=kind==="video"?bottomVideoLeft:bottomPictureLeft;
-    const bottomEl=kind==="video"?bottomVideoBottom:bottomPictureBottom;
-    leftEl.value=Math.round(x);
-    bottomEl.value=Math.round(H-r.h-y);
-    kind==="video"?updateBottomVideoLabels():updateBottomPictureLabels();
+    if(activeBottomVideoIndex>=0 && bottomVideos[activeBottomVideoIndex]){
+      const item=bottomVideos[activeBottomVideoIndex]; const r=getBottomMediaRect("video",item);
+      const x=Math.max(0,Math.min(W-r.w,p.x-bottomMediaDragOffsetX));
+      const y=Math.max(0,Math.min(H-r.h,p.y-bottomMediaDragOffsetY));
+      item.left=Math.round(x); item.bottom=Math.round(H-r.h-y);
+      syncActiveVideoControls(); scheduleSaveJob();
+    }else{
+      const r=getBottomMediaRect("image");
+      const x=Math.max(0,Math.min(W-r.w,p.x-bottomMediaDragOffsetX));
+      const y=Math.max(0,Math.min(H-r.h,p.y-bottomMediaDragOffsetY));
+      bottomPictureLeft.value=Math.round(x); bottomPictureBottom.value=Math.round(H-r.h-y);
+      updateBottomPictureLabels(); scheduleSaveJob();
+    }
     event.preventDefault(); return;
   }
   if(!draggingCelebrantText) return;
@@ -856,16 +886,18 @@ photoInput.addEventListener("change", async e=>{
   photoCounter.textContent=`${photos.length} photo${photos.length===1?"":"s"} loaded`;
   if(photos.length===loaded.length) photoIndex=0;
   photoStartedAt=performance.now();
+  scheduleSaveJob();
 });
 
 clearPhotosBtn.addEventListener("click",()=>{
   photos.forEach(p=>{ if(p.src.startsWith("blob:")) URL.revokeObjectURL(p.src); });
   photos=[]; photoIndex=0;
   photoCounter.textContent="0 photos loaded";
+  scheduleSaveJob();
 });
 
 nextPhotoBtn.addEventListener("click",()=>{
-  if(photos.length){photoIndex=(photoIndex+1)%photos.length;photoStartedAt=performance.now();}
+  if(photos.length){photoIndex=(photoIndex+1)%photos.length;photoStartedAt=performance.now(); scheduleSaveJob();}
 });
 
 slideTimeInput.addEventListener("input",()=>photoStartedAt=performance.now());
@@ -880,9 +912,9 @@ function updateLabels(){
 [wishCountInput,wishSpeedInput,wishSizeInput,wishOpacity,wishColor,wishSpacing].forEach(el=>{
   el.addEventListener("input",()=>{updateLabels();makeWishes();updateEditorFeatureLabels();});
 });
-[wishDirection,wishText,minWishInput,maxWishInput].forEach(el=>el.addEventListener("input",makeWishes));
-randomWishBtn.addEventListener("click",makeWishes);
-regenerateBtn.addEventListener("click",makeWishes);
+[wishDirection,wishText,minWishInput,maxWishInput].forEach(el=>el.addEventListener("input",()=>{makeWishes();scheduleSaveJob();}));
+randomWishBtn.addEventListener("click",()=>{makeWishes();scheduleSaveJob();});
+regenerateBtn.addEventListener("click",()=>{makeWishes();scheduleSaveJob();});
 updateLabels();
 makeWishes();
 
@@ -911,10 +943,11 @@ bottomPictureInput.addEventListener("change",async e=>{
   bottomPicturePreview.src=bottomPictureUrl;
   bottomPicturePreviewBox.style.display="block";
   bottomPictureStatus.textContent="Bottom picture loaded. Use the crop size controls above.";
+  scheduleSaveJob();
 });
 
 [bottomPictureWidth,bottomPictureHeight,bottomPictureBottom,bottomPictureLeft].forEach(el=>{
-  el.addEventListener("input",updateBottomPictureLabels);
+  el.addEventListener("input",()=>{updateBottomPictureLabels();scheduleSaveJob();});
 });
 updateBottomPictureLabels();
 
@@ -926,6 +959,7 @@ function updateCelebrantTextLabels(){
   el.addEventListener("input",()=>{
     updateCelebrantTextLabels();
     if(el===celebrantTextSize && celebrantTextY < Number(celebrantTextSize.value)) celebrantTextY=Number(celebrantTextSize.value);
+    scheduleSaveJob();
   });
 });
 updateCelebrantTextLabels();
@@ -935,37 +969,89 @@ clearBottomPictureBtn.addEventListener("click",()=>{
   bottomPictureUrl=null; bottomPicture=null; bottomPictureInput.value="";
   bottomPicturePreview.src=""; bottomPicturePreviewBox.style.display="none";
   bottomPictureStatus.textContent="No bottom picture selected.";
+  scheduleSaveJob();
 });
 
 /* ---------- bottom video ---------- */
-function updateBottomVideoLabels(){
-  bottomVideoWidthValue.textContent=bottomVideoWidth.value;
-  bottomVideoHeightValue.textContent=bottomVideoHeight.value;
-  bottomVideoBottomValue.textContent=bottomVideoBottom.value;
-  bottomVideoLeftValue.textContent=bottomVideoLeft.value;
-  bottomVideoVolumeValue.textContent=bottomVideoVolume.value;
-  if(bottomVideo) bottomVideo.volume=Number(bottomVideoVolume.value)/100;
+function activeVideo(){ return activeBottomVideoIndex>=0 ? bottomVideos[activeBottomVideoIndex] : null; }
+function syncActiveVideoControls(){
+  const item=activeVideo();
+  if(!item){ bottomVideoSelect.value="-1"; return; }
+  bottomVideoWidth.value=item.width; bottomVideoHeight.value=item.height; bottomVideoBottom.value=item.bottom; bottomVideoLeft.value=item.left; bottomVideoVolume.value=Math.round((item.volume??1)*100); bottomVideoOpacity.value=Math.round((item.opacity??1)*100); bottomVideoRotation.value=item.rotation||0; bottomVideoFlip.checked=!!item.flip; bottomVideoFilter.value=item.filter||"none"; bottomVideoLoop.checked=item.loop!==false;
+  bottomVideoWidthValue.textContent=item.width; bottomVideoHeightValue.textContent=item.height; bottomVideoBottomValue.textContent=item.bottom; bottomVideoLeftValue.textContent=item.left; bottomVideoVolumeValue.textContent=Math.round((item.volume??1)*100); bottomVideoOpacityValue.textContent=Math.round((item.opacity??1)*100);
 }
-[bottomVideoWidth,bottomVideoHeight,bottomVideoBottom,bottomVideoLeft,bottomVideoVolume].forEach(el=>el.addEventListener("input",updateBottomVideoLabels));
-updateBottomVideoLabels();
+function refreshVideoList(){
+  bottomVideoSelect.innerHTML='<option value="-1">Select video</option>';
+  bottomVideos.forEach((item,i)=>{ const o=document.createElement("option"); o.value=i; o.textContent=`VIDEO ${i+1}`; bottomVideoSelect.appendChild(o); });
+  if(activeBottomVideoIndex>=0) bottomVideoSelect.value=String(activeBottomVideoIndex);
+  bottomVideoStatus.textContent=bottomVideos.length ? `${bottomVideos.length} video${bottomVideos.length===1?"":"s"} loaded.` : "No bottom videos selected.";
+}
+function updateBottomVideoLabels(){
+  const item=activeVideo(); if(!item) return;
+  item.width=Number(bottomVideoWidth.value); item.height=Number(bottomVideoHeight.value); item.bottom=Number(bottomVideoBottom.value); item.left=Number(bottomVideoLeft.value); item.volume=Number(bottomVideoVolume.value)/100; item.opacity=Number(bottomVideoOpacity.value)/100; item.rotation=Number(bottomVideoRotation.value); item.flip=bottomVideoFlip.checked; item.filter=bottomVideoFilter.value; item.loop=bottomVideoLoop.checked;
+  if(item.video){ item.video.volume=item.volume; item.video.loop=item.loop; }
+  bottomVideoWidthValue.textContent=bottomVideoWidth.value; bottomVideoHeightValue.textContent=bottomVideoHeight.value; bottomVideoBottomValue.textContent=bottomVideoBottom.value; bottomVideoLeftValue.textContent=bottomVideoLeft.value; bottomVideoVolumeValue.textContent=bottomVideoVolume.value; bottomVideoOpacityValue.textContent=bottomVideoOpacity.value;
+  scheduleSaveJob();
+}
+[bottomVideoWidth,bottomVideoHeight,bottomVideoBottom,bottomVideoLeft,bottomVideoVolume,bottomVideoOpacity,bottomVideoRotation,bottomVideoFlip,bottomVideoFilter].forEach(el=>el.addEventListener("input",updateBottomVideoLabels));
+bottomVideoLoop.addEventListener("change",updateBottomVideoLabels);
+bottomVideoSelect.addEventListener("change",()=>{ activeBottomVideoIndex=Number(bottomVideoSelect.value); syncActiveVideoControls(); });
 
-bottomVideoInput.addEventListener("change",()=>{
-  const file=bottomVideoInput.files&&bottomVideoInput.files[0];
-  if(!file || !file.type.startsWith("video/")) return;
-  if(bottomVideoUrl) URL.revokeObjectURL(bottomVideoUrl);
-  bottomVideoUrl=URL.createObjectURL(file);
-  const v=document.createElement("video");
-  v.src=bottomVideoUrl; v.muted=true; v.loop=bottomVideoLoop.checked; v.playsInline=true; v.preload="auto";
-  v.addEventListener("loadeddata",()=>{ v.play().catch(()=>{}); });
-  bottomVideo=v;
-  bottomVideoStatus.textContent="Bottom video loaded. Drag it directly on the celebration screen.";
+bottomVideoInput.addEventListener("change",async()=>{
+  const files=[...(bottomVideoInput.files||[])].filter(f=>f.type.startsWith("video/"));
+  for(const file of files){
+    const url=URL.createObjectURL(file); const v=document.createElement("video");
+    v.src=url; v.muted=true; v.loop=bottomVideoLoop.checked; v.playsInline=true; v.preload="auto"; v.addEventListener("loadeddata",()=>v.play().catch(()=>{}),{once:true});
+    bottomVideos.push({video:v,url,fileName:file.name,width:260,height:130,bottom:18,left:254,volume:1,opacity:1,rotation:0,flip:false,filter:"none",loop:true});
+  }
+  if(bottomVideos.length) activeBottomVideoIndex=bottomVideos.length-files.length;
+  bottomVideo=activeVideo()?.video||null; bottomVideoUrl=activeVideo()?.url||null; refreshVideoList(); syncActiveVideoControls(); await scheduleSaveJob();
+  bottomVideoInput.value="";
 });
-
+removeSelectedVideoBtn.addEventListener("click",()=>{
+  if(activeBottomVideoIndex<0 || !bottomVideos[activeBottomVideoIndex]) return;
+  const item=bottomVideos.splice(activeBottomVideoIndex,1)[0]; if(item.url) URL.revokeObjectURL(item.url);
+  activeBottomVideoIndex=Math.min(activeBottomVideoIndex,bottomVideos.length-1); bottomVideo=activeVideo()?.video||null; bottomVideoUrl=activeVideo()?.url||null; refreshVideoList(); syncActiveVideoControls(); scheduleSaveJob();
+});
 clearBottomVideoBtn.addEventListener("click",()=>{
-  if(bottomVideoUrl) URL.revokeObjectURL(bottomVideoUrl);
-  bottomVideoUrl=null; bottomVideo=null; bottomVideoInput.value="";
-  bottomVideoStatus.textContent="No bottom video selected.";
+  bottomVideos.forEach(item=>item.url&&URL.revokeObjectURL(item.url)); bottomVideos=[]; activeBottomVideoIndex=-1; bottomVideo=null; bottomVideoUrl=null; refreshVideoList(); scheduleSaveJob();
 });
+refreshVideoList();
+
+/* Keep editor settings saved as the user changes them. */
+[slideTimeInput,photoOpacity,photoRotation,photoFit,photoFlip,wishCountInput,wishSpeedInput,wishSizeInput,wishOpacity,wishDirection,wishText,minWishInput,maxWishInput,wishColor,celebrantText,celebrantTextFont,celebrantTextSize,celebrantTextOpacity,celebrantTextAlign,celebrantTextColor,celebrantTextBackground,celebrantTextSpacing,celebrantTextOutline].forEach(el=>el.addEventListener("input",scheduleSaveJob));
+/* ---------- persistent current job ---------- */
+const JOB_DB="kulzzyCelebrationStudioJob";
+let saveJobTimer=null;
+function openJobDB(){ return new Promise((resolve,reject)=>{ const req=indexedDB.open(JOB_DB,1); req.onupgradeneeded=()=>req.result.createObjectStore("job"); req.onsuccess=()=>resolve(req.result); req.onerror=()=>reject(req.error); }); }
+async function putJob(data){ const db=await openJobDB(); return new Promise((resolve,reject)=>{ const tx=db.transaction("job","readwrite"); tx.objectStore("job").put(data,"current"); tx.oncomplete=()=>{db.close();resolve();}; tx.onerror=()=>{db.close();reject(tx.error)}; }); }
+async function getJob(){ const db=await openJobDB(); return new Promise((resolve,reject)=>{ const tx=db.transaction("job","readonly"); const r=tx.objectStore("job").get("current"); r.onsuccess=()=>{db.close();resolve(r.result||null)}; r.onerror=()=>{db.close();reject(r.error)}; }); }
+function blobFromURL(url){ return fetch(url).then(r=>r.blob()); }
+function scheduleSaveJob(){ clearTimeout(saveJobTimer); saveJobTimer=setTimeout(()=>saveCurrentJob().catch(()=>{}),500); }
+async function saveCurrentJob(){
+  const data={version:2,photos:[],bottomPicture:null,bottomVideos:[],settings:{}};
+  for(const img of photos){ if(img.src) data.photos.push(await blobFromURL(img.src)); }
+  if(bottomPictureUrl) data.bottomPicture=await blobFromURL(bottomPictureUrl);
+  for(const item of bottomVideos){ data.bottomVideos.push({blob:item.url?await blobFromURL(item.url):null,name:item.fileName||"video",width:item.width,height:item.height,bottom:item.bottom,left:item.left,volume:item.volume,opacity:item.opacity,rotation:item.rotation,flip:item.flip,filter:item.filter,loop:item.loop}); }
+  const ids=["slideTime","photoOpacity","photoRotation","photoFit","photoFlip","minWish","maxWish","wishCount","wishSpeed","wishSize","wishSpacing","wishOpacity","wishDirection","wishText","wishColor","celebrantText","celebrantTextFont","celebrantTextSize","celebrantTextOpacity","celebrantTextAlign","celebrantTextColor","celebrantTextBackground","celebrantTextSpacing","celebrantTextOutline","bottomPictureWidth","bottomPictureHeight","bottomPictureBottom","bottomPictureLeft","bottomPictureOpacity","bottomPictureRotation"];
+  ids.forEach(id=>{const el=document.getElementById(id); if(el) data.settings[id]=el.type==="checkbox"?el.checked:el.value;});
+  data.settings.photoIndex=photoIndex; data.settings.celebrantTextY=celebrantTextY;
+  await putJob(data);
+}
+function setEl(id,value){ const el=document.getElementById(id); if(!el||value===undefined) return; if(el.type==="checkbox") el.checked=!!value; else el.value=value; }
+async function restoreCurrentJob(){
+  const data=await getJob().catch(()=>null); if(!data) return;
+  const photoUrls=[];
+  for(const blob of (data.photos||[])){ const url=URL.createObjectURL(blob); const img=new Image(); img.src=url; await img.decode().catch(()=>{}); photos.push(img); photoUrls.push(url); }
+  if(data.bottomPicture){ bottomPictureUrl=URL.createObjectURL(data.bottomPicture); const img=new Image(); img.src=bottomPictureUrl; await img.decode().catch(()=>{}); bottomPicture=img; bottomPicturePreview.src=bottomPictureUrl; bottomPicturePreviewBox.style.display="block"; bottomPictureStatus.textContent="Saved bottom picture restored."; }
+  for(const item of (data.bottomVideos||[])){ if(!item.blob) continue; const url=URL.createObjectURL(item.blob); const v=document.createElement("video"); v.src=url; v.muted=true; v.loop=item.loop!==false; v.playsInline=true; v.preload="auto"; v.addEventListener("loadeddata",()=>v.play().catch(()=>{}),{once:true}); bottomVideos.push({...item,url,video:v}); }
+  const ids=Object.keys(data.settings||{}); ids.forEach(id=>{if(id!=="photoIndex"&&id!=="celebrantTextY") setEl(id,data.settings[id]);});
+  photoIndex=Math.min(Number(data.settings.photoIndex)||0,Math.max(0,photos.length-1)); celebrantTextY=Number(data.settings.celebrantTextY)||celebrantTextY;
+  if(photos.length) photoCounter.textContent=`${photos.length} photo${photos.length===1?"":"s"} loaded • restored`;
+  refreshVideoList(); if(bottomVideos.length){activeBottomVideoIndex=0;syncActiveVideoControls();}
+  updateBottomPictureLabels(); updateCelebrantTextLabels(); updateLabels(); updateEditorFeatureLabels(); makeWishes();
+}
+window.addEventListener("load",()=>restoreCurrentJob().catch(()=>{}));
 
 /* ---------- camera ---------- */
 async function openCamera(){
