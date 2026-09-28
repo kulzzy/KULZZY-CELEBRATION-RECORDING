@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#07152d">
+<link rel="manifest" href="manifest.json">
 <title>KULZZY CELEBRATION STUDIO</title>
 <style>
 :root{
@@ -200,6 +201,38 @@ input[type=range]{width:100%}
     </div>
 
     <div class="section">
+      <h3>Bottom Video</h3>
+      <label>Add video to the bottom of the video</label>
+      <input id="bottomVideoInput" type="file" accept="video/*">
+      <div class="counter" id="bottomVideoStatus">No bottom video selected.</div>
+      <div class="crop-grid">
+        <div>
+          <label>Width</label>
+          <input id="bottomVideoWidth" type="range" min="80" max="700" value="260">
+          <div class="counter"><span id="bottomVideoWidthValue">260</span> px</div>
+        </div>
+        <div>
+          <label>Height</label>
+          <input id="bottomVideoHeight" type="range" min="40" max="350" value="130">
+          <div class="counter"><span id="bottomVideoHeightValue">130</span> px</div>
+        </div>
+      </div>
+      <label>Bottom position</label>
+      <input id="bottomVideoBottom" type="range" min="0" max="900" value="18">
+      <div class="counter"><span id="bottomVideoBottomValue">18</span> px from bottom</div>
+      <label>Horizontal position</label>
+      <input id="bottomVideoLeft" type="range" min="0" max="700" value="254">
+      <div class="counter"><span id="bottomVideoLeftValue">254</span> px from left</div>
+      <label>Video volume</label>
+      <input id="bottomVideoVolume" type="range" min="0" max="100" value="100">
+      <div class="counter"><span id="bottomVideoVolumeValue">100</span>%</div>
+      <div class="small">Drag the bottom video directly on the celebration screen to move it. It is cropped inside its selected size.</div>
+      <div class="controls">
+        <button class="btn gray" id="clearBottomVideoBtn">REMOVE BOTTOM VIDEO</button>
+      </div>
+    </div>
+
+    <div class="section">
       <h3>Celebrant Name Text</h3>
       <label>Text</label>
       <input id="celebrantText" type="text" placeholder="Enter celebrant name">
@@ -217,6 +250,18 @@ input[type=range]{width:100%}
       <label>Text faintness</label>
       <input id="celebrantTextOpacity" type="range" min="20" max="100" value="72">
       <div class="counter"><span id="celebrantTextOpacityValue">72</span>%</div>
+      <label>Text color</label>
+      <input id="celebrantTextColor" type="color" value="#ffffff" style="width:100%;height:42px;padding:3px;background:#06152b;border:1px solid #35547e;border-radius:8px">
+      <label>Text background</label>
+      <select id="celebrantTextBackground">
+        <option value="none">None</option>
+        <option value="black">Black</option>
+        <option value="white">White</option>
+        <option value="red">Red</option>
+        <option value="gold">Gold</option>
+        <option value="navy">Navy</option>
+        <option value="transparent">Faint black</option>
+      </select>
       <div class="small">Drag the name up or down directly on the picture.</div>
     </div>
 
@@ -320,6 +365,20 @@ const bottomPictureBottomValue = document.getElementById("bottomPictureBottomVal
 const bottomPictureLeftValue = document.getElementById("bottomPictureLeftValue");
 const clearBottomPictureBtn = document.getElementById("clearBottomPictureBtn");
 
+const bottomVideoInput = document.getElementById("bottomVideoInput");
+const bottomVideoStatus = document.getElementById("bottomVideoStatus");
+const bottomVideoWidth = document.getElementById("bottomVideoWidth");
+const bottomVideoHeight = document.getElementById("bottomVideoHeight");
+const bottomVideoBottom = document.getElementById("bottomVideoBottom");
+const bottomVideoLeft = document.getElementById("bottomVideoLeft");
+const bottomVideoVolume = document.getElementById("bottomVideoVolume");
+const bottomVideoWidthValue = document.getElementById("bottomVideoWidthValue");
+const bottomVideoHeightValue = document.getElementById("bottomVideoHeightValue");
+const bottomVideoBottomValue = document.getElementById("bottomVideoBottomValue");
+const bottomVideoLeftValue = document.getElementById("bottomVideoLeftValue");
+const bottomVideoVolumeValue = document.getElementById("bottomVideoVolumeValue");
+const clearBottomVideoBtn = document.getElementById("clearBottomVideoBtn");
+
 const celebrantText = document.getElementById("celebrantText");
 const celebrantTextFont = document.getElementById("celebrantTextFont");
 const celebrantTextSize = document.getElementById("celebrantTextSize");
@@ -350,8 +409,15 @@ let videoChunks = [];
 let recording = false;
 let bottomPicture = null;
 let bottomPictureUrl = null;
+let bottomVideo = null;
+let bottomVideoUrl = null;
 
 let celebrantTextY = H - 120;
+let bottomMediaX = 254;
+let bottomMediaY = H - 130 - 18;
+let draggingBottomMedia = false;
+let bottomMediaDragOffsetX = 0;
+let bottomMediaDragOffsetY = 0;
 let draggingCelebrantText = false;
 let celebrantTextDragOffsetY = 0;
 
@@ -474,25 +540,39 @@ function drawCurrentPhoto(){
   drawContainImage(p,photoBox,photoFit.value);
 }
 
-function drawBottomPicture(){
-  if(!bottomPicture || !bottomPicture.complete) return;
-  const w=Math.max(1,Math.min(W,Number(bottomPictureWidth.value)||260));
-  const h=Math.max(1,Math.min(H,Number(bottomPictureHeight.value)||130));
-  const x=Math.max(0,Math.min(W-w,Number(bottomPictureLeft.value)||0));
-  const bottom=Math.max(0,Number(bottomPictureBottom.value)||0);
+function getBottomMediaRect(kind){
+  const widthEl=kind==="video"?bottomVideoWidth:bottomPictureWidth;
+  const heightEl=kind==="video"?bottomVideoHeight:bottomPictureHeight;
+  const leftEl=kind==="video"?bottomVideoLeft:bottomPictureLeft;
+  const bottomEl=kind==="video"?bottomVideoBottom:bottomPictureBottom;
+  const w=Math.max(1,Math.min(W,Number(widthEl.value)||260));
+  const h=Math.max(1,Math.min(H,Number(heightEl.value)||130));
+  const x=Math.max(0,Math.min(W-w,Number(leftEl.value)||bottomMediaX));
+  const bottom=Math.max(0,Number(bottomEl.value)||0);
   const y=Math.max(0,Math.min(H-h,H-h-bottom));
-  const iw=bottomPicture.naturalWidth||bottomPicture.width;
-  const ih=bottomPicture.naturalHeight||bottomPicture.height;
+  return {x,y,w,h};
+}
+
+function drawBottomMedia(media,kind){
+  if(!media || !media.readyState && kind==="video" || (kind==="video" && media.readyState<2) || (kind==="image" && !media.complete)) return;
+  const box=getBottomMediaRect(kind);
+  const iw=media.videoWidth||media.naturalWidth||media.width;
+  const ih=media.videoHeight||media.naturalHeight||media.height;
   if(!iw||!ih) return;
-  const scale=Math.max(w/iw,h/ih);
+  const scale=Math.max(box.w/iw,box.h/ih);
   const dw=iw*scale, dh=ih*scale;
-  const dx=x+(w-dw)/2, dy=y+(h-dh)/2;
+  const dx=box.x+(box.w-dw)/2, dy=box.y+(box.h-dh)/2;
   ctx.save();
   ctx.beginPath();
-  ctx.rect(x,y,w,h);
+  ctx.rect(box.x,box.y,box.w,box.h);
   ctx.clip();
-  ctx.drawImage(bottomPicture,dx,dy,dw,dh);
+  ctx.drawImage(media,dx,dy,dw,dh);
   ctx.restore();
+}
+
+function drawBottomPicture(){
+  if(bottomPicture) drawBottomMedia(bottomPicture,"image");
+  if(bottomVideo) drawBottomMedia(bottomVideo,"video");
 }
 
 function drawCelebrantText(){
@@ -505,7 +585,15 @@ function drawCelebrantText(){
   ctx.textBaseline="middle";
   ctx.font=`700 ${size}px "${celebrantTextFont.value}", Arial, sans-serif`;
   ctx.globalAlpha=(Number(celebrantTextOpacity.value)||72)/100;
-  ctx.fillStyle="#fff";
+  const textWidth=ctx.measureText(text).width;
+  const bg=celebrantTextBackground.value;
+  if(bg!=="none") {
+    const padX=18, padY=10;
+    const bgColor={black:"#000000",white:"#ffffff",red:"#d71920",gold:"#d8ad35",navy:"#06152b",transparent:"rgba(0,0,0,.38)"}[bg]||"transparent";
+    ctx.fillStyle=bgColor;
+    ctx.fillRect(W/2-textWidth/2-padX,y-size/2-padY,textWidth+padX*2,size+padY*2);
+  }
+  ctx.fillStyle=celebrantTextColor.value||"#ffffff";
   ctx.shadowColor="rgba(0,0,0,.55)";
   ctx.shadowBlur=5;
   ctx.fillText(text,W/2,y);
@@ -519,28 +607,58 @@ function getCanvasPointerY(event){
   return (event.clientY-rect.top)*scaleY;
 }
 
+function getCanvasPointer(event){
+  const rect=canvas.getBoundingClientRect();
+  return {x:(event.clientX-rect.left)*(W/rect.width),y:(event.clientY-rect.top)*(H/rect.height)};
+}
+
+function pointInRect(p,r){ return p.x>=r.x && p.x<=r.x+r.w && p.y>=r.y && p.y<=r.y+r.h; }
+
 canvas.addEventListener("pointerdown",event=>{
+  const p=getCanvasPointer(event);
+  if(bottomVideo && pointInRect(p,getBottomMediaRect("video"))){
+    draggingBottomMedia=true;
+    const r=getBottomMediaRect("video");
+    bottomMediaDragOffsetX=p.x-r.x; bottomMediaDragOffsetY=p.y-r.y;
+    canvas.setPointerCapture?.(event.pointerId); event.preventDefault(); return;
+  }
+  if(bottomPicture && pointInRect(p,getBottomMediaRect("image"))){
+    draggingBottomMedia=true;
+    const r=getBottomMediaRect("image");
+    bottomMediaDragOffsetX=p.x-r.x; bottomMediaDragOffsetY=p.y-r.y;
+    canvas.setPointerCapture?.(event.pointerId); event.preventDefault(); return;
+  }
   if(!celebrantText.value.trim()) return;
   const size=Math.max(18,Number(celebrantTextSize.value)||42);
-  const y=getCanvasPointerY(event);
-  if(Math.abs(y-celebrantTextY)<=Math.max(28,size*.75)){
-    draggingCelebrantText=true;
-    celebrantTextDragOffsetY=y-celebrantTextY;
-    canvas.setPointerCapture?.(event.pointerId);
-    event.preventDefault();
+  if(Math.abs(p.y-celebrantTextY)<=Math.max(28,size*.75)){
+    draggingCelebrantText=true; celebrantTextDragOffsetY=p.y-celebrantTextY;
+    canvas.setPointerCapture?.(event.pointerId); event.preventDefault();
   }
 });
 
 canvas.addEventListener("pointermove",event=>{
+  if(draggingBottomMedia){
+    const p=getCanvasPointer(event);
+    const kind=bottomVideo?"video":"image";
+    const r=getBottomMediaRect(kind);
+    const x=Math.max(0,Math.min(W-r.w,p.x-bottomMediaDragOffsetX));
+    const y=Math.max(0,Math.min(H-r.h,p.y-bottomMediaDragOffsetY));
+    const leftEl=kind==="video"?bottomVideoLeft:bottomPictureLeft;
+    const bottomEl=kind==="video"?bottomVideoBottom:bottomPictureBottom;
+    leftEl.value=Math.round(x);
+    bottomEl.value=Math.round(H-r.h-y);
+    kind==="video"?updateBottomVideoLabels():updateBottomPictureLabels();
+    event.preventDefault(); return;
+  }
   if(!draggingCelebrantText) return;
-  const y=getCanvasPointerY(event)-celebrantTextDragOffsetY;
+  const p=getCanvasPointer(event);
   const size=Math.max(18,Number(celebrantTextSize.value)||42);
-  celebrantTextY=Math.max(size,Math.min(H-size,y));
+  celebrantTextY=Math.max(size,Math.min(H-size,p.y-celebrantTextDragOffsetY));
   event.preventDefault();
 });
 
-canvas.addEventListener("pointerup",()=>{draggingCelebrantText=false;});
-canvas.addEventListener("pointercancel",()=>{draggingCelebrantText=false;});
+canvas.addEventListener("pointerup",()=>{draggingBottomMedia=false;draggingCelebrantText=false;});
+canvas.addEventListener("pointercancel",()=>{draggingBottomMedia=false;draggingCelebrantText=false;});
 
 function drawCameraOverlay(){
   if(!cameraStream || cameraOverlay.value==="off" || cameraVideo.readyState<2) return;
@@ -719,7 +837,7 @@ function updateCelebrantTextLabels(){
   celebrantTextSizeValue.textContent=celebrantTextSize.value;
   celebrantTextOpacityValue.textContent=celebrantTextOpacity.value;
 }
-[celebrantText,celebrantTextFont,celebrantTextSize,celebrantTextOpacity].forEach(el=>{
+[celebrantText,celebrantTextFont,celebrantTextSize,celebrantTextOpacity,celebrantTextColor,celebrantTextBackground].forEach(el=>{
   el.addEventListener("input",()=>{
     updateCelebrantTextLabels();
     if(el===celebrantTextSize && celebrantTextY < Number(celebrantTextSize.value)) celebrantTextY=Number(celebrantTextSize.value);
@@ -729,12 +847,39 @@ updateCelebrantTextLabels();
 
 clearBottomPictureBtn.addEventListener("click",()=>{
   if(bottomPictureUrl) URL.revokeObjectURL(bottomPictureUrl);
-  bottomPictureUrl=null;
-  bottomPicture=null;
-  bottomPictureInput.value="";
-  bottomPicturePreview.src="";
-  bottomPicturePreviewBox.style.display="none";
+  bottomPictureUrl=null; bottomPicture=null; bottomPictureInput.value="";
+  bottomPicturePreview.src=""; bottomPicturePreviewBox.style.display="none";
   bottomPictureStatus.textContent="No bottom picture selected.";
+});
+
+/* ---------- bottom video ---------- */
+function updateBottomVideoLabels(){
+  bottomVideoWidthValue.textContent=bottomVideoWidth.value;
+  bottomVideoHeightValue.textContent=bottomVideoHeight.value;
+  bottomVideoBottomValue.textContent=bottomVideoBottom.value;
+  bottomVideoLeftValue.textContent=bottomVideoLeft.value;
+  bottomVideoVolumeValue.textContent=bottomVideoVolume.value;
+  if(bottomVideo) bottomVideo.volume=Number(bottomVideoVolume.value)/100;
+}
+[bottomVideoWidth,bottomVideoHeight,bottomVideoBottom,bottomVideoLeft,bottomVideoVolume].forEach(el=>el.addEventListener("input",updateBottomVideoLabels));
+updateBottomVideoLabels();
+
+bottomVideoInput.addEventListener("change",()=>{
+  const file=bottomVideoInput.files&&bottomVideoInput.files[0];
+  if(!file || !file.type.startsWith("video/")) return;
+  if(bottomVideoUrl) URL.revokeObjectURL(bottomVideoUrl);
+  bottomVideoUrl=URL.createObjectURL(file);
+  const v=document.createElement("video");
+  v.src=bottomVideoUrl; v.muted=true; v.loop=true; v.playsInline=true; v.preload="auto";
+  v.addEventListener("loadeddata",()=>{ v.play().catch(()=>{}); });
+  bottomVideo=v;
+  bottomVideoStatus.textContent="Bottom video loaded. Drag it directly on the celebration screen.";
+});
+
+clearBottomVideoBtn.addEventListener("click",()=>{
+  if(bottomVideoUrl) URL.revokeObjectURL(bottomVideoUrl);
+  bottomVideoUrl=null; bottomVideo=null; bottomVideoInput.value="";
+  bottomVideoStatus.textContent="No bottom video selected.";
 });
 
 /* ---------- camera ---------- */
@@ -872,7 +1017,11 @@ window.addEventListener("beforeunload",()=>{
   if(cameraStream) cameraStream.getTracks().forEach(t=>t.stop());
   if(audioStream) audioStream.getTracks().forEach(t=>t.stop());
   if(bottomPictureUrl) URL.revokeObjectURL(bottomPictureUrl);
+  if(bottomVideoUrl) URL.revokeObjectURL(bottomVideoUrl);
 });
+if("serviceWorker" in navigator){
+  window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
+}
 </script>
 </body>
 </html>
