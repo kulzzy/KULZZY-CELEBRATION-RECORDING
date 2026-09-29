@@ -2797,6 +2797,11 @@ let bottomPictureBlob=null;
 
 let bottomPictureScale=1;
 
+/* BOTTOM PICTURE TOUCH + PINCH ZOOM */
+const bottomPicturePointers=new Map();
+let bottomPicturePinchState=null;
+let bottomPictureDragState=null;
+
 let activeMediaGesture=null;
 
 let celebrantTextY=H-120;
@@ -3698,21 +3703,54 @@ canvas.addEventListener(
       )
     ){
 
-      activeMediaGesture={
-        pointerId:event.pointerId,
-        startX:p.x,
-        startY:p.y,
-        startLeft:bottomPictureLeftNum,
-        startBottom:bottomPictureBottomNum,
-        startScale:bottomPictureScale
-      };
+      bottomPicturePointers.set(
+        event.pointerId,
+        p
+      );
 
       canvas.setPointerCapture?.(
         event.pointerId
       );
 
-      event.preventDefault();
+      if(bottomPicturePointers.size===1){
 
+        bottomPictureDragState={
+          pointerId:event.pointerId,
+          startX:p.x,
+          startY:p.y,
+          startLeft:bottomPictureLeftNum,
+          startBottom:bottomPictureBottomNum
+        };
+
+        bottomPicturePinchState=null;
+
+      }else if(bottomPicturePointers.size===2){
+
+        const points=[...bottomPicturePointers.values()];
+
+        const centerX=
+          (points[0].x+points[1].x)/2;
+
+        const centerY=
+          (points[0].y+points[1].y)/2;
+
+        bottomPicturePinchState={
+          startDistance:Math.max(1,Math.hypot(
+            points[0].x-points[1].x,
+            points[0].y-points[1].y
+          )),
+          startScale:bottomPictureScale,
+          startLeft:bottomPictureLeftNum,
+          startBottom:bottomPictureBottomNum,
+          startCenterX:centerX,
+          startCenterY:centerY
+        };
+
+        bottomPictureDragState=null;
+      }
+
+      event.preventDefault();
+      event.stopImmediatePropagation();
       return;
     }
 
@@ -3749,7 +3787,8 @@ canvas.addEventListener(
       event.preventDefault();
     }
 
-  }
+  },
+  {passive:false}
 );
 
 
@@ -3757,33 +3796,109 @@ canvas.addEventListener(
   "pointermove",
   event=>{
 
-    if(activeMediaGesture){
-
-      const g=
-        activeMediaGesture;
+    if(bottomPicturePointers.has(event.pointerId)){
 
       const p=
         getCanvasPointer(event);
 
-      const dx=
-        p.x-g.startX;
+      bottomPicturePointers.set(
+        event.pointerId,
+        p
+      );
 
-      const dy=
-        p.y-g.startY;
+      if(bottomPicturePointers.size===2){
 
-      bottomPictureLeftNum=
-        Math.round(
-          g.startLeft+dx
+        const points=[...bottomPicturePointers.values()];
+
+        if(!bottomPicturePinchState){
+
+          const centerX=
+            (points[0].x+points[1].x)/2;
+
+          const centerY=
+            (points[0].y+points[1].y)/2;
+
+          bottomPicturePinchState={
+            startDistance:Math.max(1,Math.hypot(
+              points[0].x-points[1].x,
+              points[0].y-points[1].y
+            )),
+            startScale:bottomPictureScale,
+            startLeft:bottomPictureLeftNum,
+            startBottom:bottomPictureBottomNum,
+            startCenterX:centerX,
+            startCenterY:centerY
+          };
+        }
+
+        const centerX=
+          (points[0].x+points[1].x)/2;
+
+        const centerY=
+          (points[0].y+points[1].y)/2;
+
+        const distance=Math.max(1,Math.hypot(
+          points[0].x-points[1].x,
+          points[0].y-points[1].y
+        ));
+
+        const ratio=
+          distance/bottomPicturePinchState.startDistance;
+
+        bottomPictureScale=Math.max(
+          .15,
+          Math.min(5,
+            bottomPicturePinchState.startScale*ratio
+          )
         );
 
-      bottomPictureBottomNum=
-        Math.round(
-          g.startBottom-dy
-        );
+        bottomPictureLeftNum=
+          Math.round(
+            bottomPicturePinchState.startLeft+
+            (centerX-bottomPicturePinchState.startCenterX)
+          );
 
-      scheduleSaveJob();
+        bottomPictureBottomNum=
+          Math.round(
+            bottomPicturePinchState.startBottom-
+            (centerY-bottomPicturePinchState.startCenterY)
+          );
 
-      event.preventDefault();
+        scheduleSaveJob();
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        return;
+      }
+
+      if(
+        bottomPicturePointers.size===1&&
+        bottomPictureDragState&&
+        bottomPictureDragState.pointerId===event.pointerId
+      ){
+
+        const g=bottomPictureDragState;
+
+        const dx=
+          p.x-g.startX;
+
+        const dy=
+          p.y-g.startY;
+
+        bottomPictureLeftNum=
+          Math.round(
+            g.startLeft+dx
+          );
+
+        bottomPictureBottomNum=
+          Math.round(
+            g.startBottom-dy
+          );
+
+        scheduleSaveJob();
+
+        event.preventDefault();
+        event.stopImmediatePropagation();
+      }
 
       return;
     }
@@ -3815,27 +3930,64 @@ canvas.addEventListener(
 
     event.preventDefault();
 
-  }
+  },
+  {passive:false}
 );
 
 
-function finishCanvasPointer(){
+function finishCanvasPointer(event){
+
+  if(bottomPicturePointers.has(event.pointerId)){
+
+    bottomPicturePointers.delete(
+      event.pointerId
+    );
+
+    if(bottomPicturePointers.size===0){
+      bottomPictureDragState=null;
+      bottomPicturePinchState=null;
+      activeMediaGesture=null;
+      scheduleSaveJob();
+      pushHistoryState();
+    }else if(bottomPicturePointers.size===1){
+
+      const remaining=[...bottomPicturePointers.entries()][0];
+      const pointerId=remaining[0];
+      const p=remaining[1];
+
+      bottomPictureDragState={
+        pointerId,
+        startX:p.x,
+        startY:p.y,
+        startLeft:bottomPictureLeftNum,
+        startBottom:bottomPictureBottomNum
+      };
+
+      bottomPicturePinchState=null;
+    }
+
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    return;
+  }
 
   activeMediaGesture=null;
   draggingCelebrantText=false;
 
 }
 
+
 canvas.addEventListener(
   "pointerup",
-  finishCanvasPointer
+  finishCanvasPointer,
+  {capture:true}
 );
 
 canvas.addEventListener(
   "pointercancel",
-  finishCanvasPointer
+  finishCanvasPointer,
+  {capture:true}
 );
-
 
 function pointInRect(p,r){
 
