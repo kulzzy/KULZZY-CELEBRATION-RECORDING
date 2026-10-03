@@ -1,0 +1,36 @@
+KULZZY CELEBRATION STUDIO - OFFLINE INSTALLATION PACKAGE
+
+FILES
+-----
+index.html
+manifest.json
+sw.js
+icon-192.png
+icon-512.png
+
+IMPORTANT
+---------
+A PWA cannot be installed from a file:// address. The first installation must be opened from an HTTPS website (for example GitHub Pages). This is a browser security requirement.
+
+After the Studio has been opened online once and the service worker has finished installing, the Studio caches its app shell and the MP4 export engines. It can then be launched as an installed app without Internet/data for the cached Studio functions.
+
+FIRST-TIME SETUP
+----------------
+1. Upload ALL five files to the SAME folder on the HTTPS site.
+2. Open the Studio online once.
+3. Wait for the page to finish loading.
+4. Close and reopen the Studio once while still online so the service worker takes control.
+5. Install the app from Chrome's Install app / Add to Home screen option.
+6. After this, the cached Studio can be opened without Internet/data.
+
+MP4 EXPORT
+----------
+The service worker caches the Mediabunny H.264/MP4 engine and AAC encoder from their official jsDelivr package URLs during the first online installation/opening. The existing Studio MP4 finalizer remains unchanged.
+
+If the first online opening cannot download an export engine, MP4 export will not be available offline until that engine has successfully been cached.
+
+NOTES
+-----
+- Project Save and local project data remain on the device/browser storage.
+- Clearing browser/site data can remove the offline cache and saved local data.
+- Microphone access is controlled by the browser/device and may require permission.
