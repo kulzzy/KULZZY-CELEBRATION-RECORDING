@@ -1,0 +1,12 @@
+/* KULZZY CELEBRATION STUDIO - OFFLINE SERVICE WORKER */
+const CACHE_NAME = "kulzzy-celebration-studio-v4";
+const APP_SHELL = ["./","./index.html","./manifest.json","./icon-192.png","./icon-512.png"];
+const ENGINE_URLS = [
+  "https://cdn.jsdelivr.net/npm/mediabunny@1.61.0/dist/bundles/mediabunny.min.cjs",
+  "https://cdn.jsdelivr.net/npm/@mediabunny/aac-encoder@1.61.0/dist/bundles/mediabunny-aac-encoder.min.js",
+  "https://cdn.jsdelivr.net/npm/mediabunny@1.61.0/+esm",
+  "https://cdn.jsdelivr.net/npm/@mediabunny/aac-encoder@1.61.0/+esm"
+];
+self.addEventListener("install",event=>{event.waitUntil((async()=>{const cache=await caches.open(CACHE_NAME);await Promise.all(APP_SHELL.map(async url=>{try{const r=await fetch(url,{cache:"no-cache"});if(r.ok)await cache.put(url,r.clone());}catch(_){}}));await Promise.all(ENGINE_URLS.map(async url=>{try{const r=await fetch(url,{mode:"cors",cache:"no-cache"});if(r.ok)await cache.put(url,r.clone());}catch(_){}}));await self.skipWaiting();})())});
+self.addEventListener("activate",event=>{event.waitUntil((async()=>{const keys=await caches.keys();await Promise.all(keys.filter(k=>k!==CACHE_NAME).map(k=>caches.delete(k)));await self.clients.claim();})())});
+self.addEventListener("fetch",event=>{const request=event.request;if(request.method!=="GET")return;const url=request.url;const isEngine=ENGINE_URLS.includes(url);const isSameOrigin=url.startsWith(self.location.origin);if(isEngine){event.respondWith((async()=>{const cache=await caches.open(CACHE_NAME);const cached=await cache.match(request);if(cached)return cached;try{const r=await fetch(request);if(r.ok)await cache.put(request,r.clone());return r}catch(_){return new Response("Offline export engine is not cached yet.",{status:503,headers:{"Content-Type":"text/plain"}})}})());return}if(isSameOrigin){if(request.mode==="navigate"){event.respondWith((async()=>{try{const r=await fetch(request);const cache=await caches.open(CACHE_NAME);if(r.ok)await cache.put("./index.html",r.clone());return r}catch(_){return (await caches.match(request))||(await caches.match("./index.html"))}})());return}event.respondWith((async()=>{const cached=await caches.match(request);if(cached)return cached;try{const r=await fetch(request);if(r.ok){const cache=await caches.open(CACHE_NAME);await cache.put(request,r.clone())}return r}catch(_){return new Response("Offline resource unavailable.",{status:404})}})())}});
