@@ -1159,12 +1159,12 @@ document.addEventListener("DOMContentLoaded",()=>{
      FEATURE PAGES
 ===================================================== -->
 
-<div id="backgroundControlPanel" style="display:none;position:fixed;z-index:3000;left:50%;top:50%;transform:translate(-50%,-50%);width:min(92vw,360px);padding:16px;background:#06152b;border:2px solid #d8ad35;border-radius:14px;box-shadow:0 12px 40px #000;color:#fff">
+<div id="backgroundControlPanel" style="display:none;position:fixed;z-index:99999;left:50%;top:50%;transform:translate(-50%,-50%);width:min(92vw,360px);max-height:85vh;overflow:auto;padding:16px;background:#06152b;border:2px solid #d8ad35;border-radius:14px;box-shadow:0 12px 40px #000;color:#fff">
 <h3 style="margin:0 0 12px">BACKGROUND CONTROLS</h3>
-<label style="display:block;margin:8px 0;font-size:13px">Choose background video
-<input id="backgroundVideoInput" type="file" accept="video/*" style="display:block;width:100%;margin-top:8px"></label>
+<label style="display:block;margin:8px 0;font-size:13px">Choose a new background video from your phone
+<input id="backgroundVideoInput" type="file" accept="video/*,.mp4,.webm,.mov" style="display:block;width:100%;margin-top:8px"></label><p id="backgroundVideoStatus" role="status" style="font-size:12px;color:#f5d46a">No new video selected. Choose a video above.</p>
 <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
-<button class="btn green" id="backgroundPlayBtn" type="button">▶ PLAY</button>
+<button class="btn green" id="backgroundChooseBtn" type="button">＋ CHOOSE VIDEO</button><button class="btn green" id="backgroundPlayBtn" type="button">▶ PLAY</button>
 <button class="btn gold" id="backgroundPauseBtn" type="button">Ⅱ PAUSE</button>
 <button class="btn" id="backgroundRestartBtn" type="button">↻ RESTART</button>
 <button class="btn red" id="backgroundCloseBtn" type="button">CLOSE</button>
@@ -2926,6 +2926,8 @@ let mainPhotoScale=1;
 /* The supplied background video loops continuously and is drawn into the
    same canvas as the photos/text so it is included in exported recordings. */
 const studioBackgroundVideo=document.createElement("video");
+// Start with the supplied default filename when it exists beside index.html.
+// The BACKGROUND icon can replace it with a video selected from the phone.
 studioBackgroundVideo.src="YouCut_20261020_074020519.mp4";
 studioBackgroundVideo.muted=true;
 studioBackgroundVideo.defaultMuted=true;
@@ -2937,10 +2939,18 @@ studioBackgroundVideo.setAttribute("playsinline","");
 studioBackgroundVideo.setAttribute("webkit-playsinline","");
 studioBackgroundVideo.style.display="none";
 document.body.appendChild(studioBackgroundVideo);
+const backgroundVideoStatus=document.getElementById("backgroundVideoStatus");
+const setBackgroundStatus=(message)=>{if(backgroundVideoStatus)backgroundVideoStatus.textContent=message;};
 const startStudioBackgroundVideo=()=>{
+  if(!studioBackgroundVideo.src){setBackgroundStatus("Choose a video to use as the background.");return;}
   const playPromise=studioBackgroundVideo.play();
-  if(playPromise&&typeof playPromise.catch==="function")playPromise.catch(()=>{});
+  if(playPromise&&typeof playPromise.then==="function"){
+    playPromise.then(()=>setBackgroundStatus("Background video is playing and will loop."))
+      .catch(()=>setBackgroundStatus("Tap PLAY to start the background video. Some phones block automatic playback."));
+  }
 };
+studioBackgroundVideo.addEventListener("loadeddata",()=>{setBackgroundStatus("Video loaded. Background is ready.");startStudioBackgroundVideo();});
+studioBackgroundVideo.addEventListener("error",()=>{setBackgroundStatus("Default video unavailable. Choose a background video from your phone above.");});
 studioBackgroundVideo.addEventListener("canplay",startStudioBackgroundVideo);
 studioBackgroundVideo.addEventListener("ended",()=>{studioBackgroundVideo.currentTime=0;startStudioBackgroundVideo();});
 document.addEventListener("visibilitychange",()=>{
@@ -2953,10 +2963,27 @@ startStudioBackgroundVideo();
 const backgroundControlPanel=document.getElementById("backgroundControlPanel");
 document.getElementById("backgroundToolBtn").addEventListener("click",()=>{backgroundControlPanel.style.display="block";});
 document.getElementById("backgroundCloseBtn").addEventListener("click",()=>{backgroundControlPanel.style.display="none";});
+document.getElementById("backgroundChooseBtn").addEventListener("click",()=>document.getElementById("backgroundVideoInput").click());
 document.getElementById("backgroundPlayBtn").addEventListener("click",()=>startStudioBackgroundVideo());
 document.getElementById("backgroundPauseBtn").addEventListener("click",()=>studioBackgroundVideo.pause());
 document.getElementById("backgroundRestartBtn").addEventListener("click",()=>{studioBackgroundVideo.currentTime=0;startStudioBackgroundVideo();});
-document.getElementById("backgroundVideoInput").addEventListener("change",e=>{const f=e.target.files&&e.target.files[0];if(!f)return;const url=URL.createObjectURL(f);studioBackgroundVideo.pause();studioBackgroundVideo.src=url;studioBackgroundVideo.loop=true;studioBackgroundVideo.load();startStudioBackgroundVideo();});
+let selectedBackgroundObjectURL=null;
+document.getElementById("backgroundVideoInput").addEventListener("change",e=>{
+  const f=e.target.files&&e.target.files[0];
+  if(!f)return;
+  if(!f.type.startsWith("video/")&&!/\.(mp4|webm|mov|m4v|ogv)$/i.test(f.name)){
+    setBackgroundStatus("Please select a video file, such as MP4.");return;
+  }
+  studioBackgroundVideo.pause();
+  if(selectedBackgroundObjectURL)URL.revokeObjectURL(selectedBackgroundObjectURL);
+  selectedBackgroundObjectURL=URL.createObjectURL(f);
+  studioBackgroundVideo.src=selectedBackgroundObjectURL;
+  studioBackgroundVideo.loop=true;
+  studioBackgroundVideo.load();
+  setBackgroundStatus("Loading: "+f.name);
+  // The file chooser is a user gesture, so request playback immediately.
+  startStudioBackgroundVideo();
+});
 
 /* =========================================================
    UTILITY
@@ -3233,8 +3260,17 @@ function drawBackground(){
      studioBackgroundVideo.videoHeight>0){
     ctx.drawImage(studioBackgroundVideo,0,0,W,H);
   }else{
-    ctx.fillStyle="#000";
+    // Keep the preview visible while a background video is loading or before one is selected.
+    ctx.fillStyle="#06152b";
     ctx.fillRect(0,0,W,H);
+    ctx.fillStyle="#d8ad35";
+    ctx.font="bold 28px Arial";
+    ctx.textAlign="center";
+    ctx.fillText("KULZZY CELEBRATION STUDIO",W/2,H/2-18);
+    ctx.font="18px Arial";
+    ctx.fillStyle="#ffffff";
+    ctx.fillText("Tap BACKGROUND to choose a video",W/2,H/2+22);
+    ctx.textAlign="left";
   }
 }
 
