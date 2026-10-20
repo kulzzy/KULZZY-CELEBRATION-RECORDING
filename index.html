@@ -856,6 +856,24 @@ input[type=range]{
   }
 }
 </style>
+<style id="removeKulzzyBannerAndSoundWaveUI">
+.volume-effect-source,.volume-layer-controls,#volumeEffectToggle,#volumeEffectLayer,.banner-effect-source,.banner-layer-controls,#bannerEffectToggle,#bannerEffectLayer{display:none!important}
+</style>
+<script>
+document.addEventListener("DOMContentLoaded",()=>{
+  document.querySelectorAll("h3").forEach(h=>{
+    const t=(h.textContent||"").trim().toLowerCase();
+    if(t.includes("volume effects")||t.includes("sound wave")||t.includes("kulzzy radio banner")){
+      const section=h.closest(".section");
+      if(section)section.remove();
+    }
+  });
+  ["volumeEffectToggle","volumeEffectLayer","bannerEffectLayer"].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){const section=el.closest(".section");if(section)section.remove();else el.remove();}
+  });
+});
+</script>
 </head>
 
 <body>
@@ -960,6 +978,11 @@ input[type=range]{
 <div
   class="tool-strip"
   id="toolStrip">
+
+  <button class="tool-btn" id="backgroundToolBtn" type="button">
+    <span class="tool-icon">▧</span>
+    <span class="tool-label">BACKGROUND</span>
+  </button>
 
   <button
     class="tool-btn"
@@ -1136,6 +1159,17 @@ input[type=range]{
      FEATURE PAGES
 ===================================================== -->
 
+<div id="backgroundControlPanel" style="display:none;position:fixed;z-index:3000;left:50%;top:50%;transform:translate(-50%,-50%);width:min(92vw,360px);padding:16px;background:#06152b;border:2px solid #d8ad35;border-radius:14px;box-shadow:0 12px 40px #000;color:#fff">
+<h3 style="margin:0 0 12px">BACKGROUND CONTROLS</h3>
+<label style="display:block;margin:8px 0;font-size:13px">Choose background video
+<input id="backgroundVideoInput" type="file" accept="video/*" style="display:block;width:100%;margin-top:8px"></label>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+<button class="btn green" id="backgroundPlayBtn" type="button">▶ PLAY</button>
+<button class="btn gold" id="backgroundPauseBtn" type="button">Ⅱ PAUSE</button>
+<button class="btn" id="backgroundRestartBtn" type="button">↻ RESTART</button>
+<button class="btn red" id="backgroundCloseBtn" type="button">CLOSE</button>
+</div><p style="font-size:11px;color:#c5d5eb">The background is included in the canvas recording. Keep the video muted for smooth recording.</p></div>
+
 <aside
   class="admin"
   id="featurePages">
@@ -1152,13 +1186,25 @@ input[type=range]{
 
 <div class="section">
 
-<h3>1. Photo Upload</h3>
+<h3>1. Photo Upload — Up to 10 Pictures</h3>
 
 <input
   id="photoInput"
   type="file"
   accept="image/*"
   multiple>
+
+<div class="photo-main-controls" style="margin:12px 0;padding:12px;border:1px solid #c9a227;border-radius:10px;background:#07182d">
+  <strong style="display:block;margin-bottom:8px;color:#f3ce3b">MAIN PICTURE CONTROLS</strong>
+  <label for="mainPhotoSize">Picture size — reduce / increase</label>
+  <input id="mainPhotoSize" type="range" min="50" max="150" value="100" step="1" style="width:100%">
+  <div style="font-size:12px;margin-bottom:8px">Use this slider to reduce or enlarge the main picture.</div>
+  <label for="photoFit">Picture fit</label>
+  <select id="photoFit" style="width:100%">
+    <option value="cover" selected>Crop and fill picture area</option>
+    <option value="contain">Fit whole picture</option>
+  </select>
+</div>
 
 <div
   class="counter"
@@ -1845,61 +1891,7 @@ Text outline
 
 <div class="section-grid">
 
-<div class="field-card">
 
-<label>
-  Photo fit
-</label>
-
-<select id="photoFit">
-
-<option value="cover">
-  Fit and crop to picture box
-</option>
-
-<option value="contain">
-  Shrink to fit whole picture
-</option>
-
-</select>
-
-<label>
-  Photo transition
-</label>
-
-<select id="photoTransition">
-
-<option value="fade">Fade</option>
-<option value="crossfade">Crossfade</option>
-<option value="slide-left">Slide left</option>
-<option value="slide-right">Slide right</option>
-<option value="slide-up">Slide up</option>
-<option value="slide-down">Slide down</option>
-<option value="push-left">Push left</option>
-<option value="push-right">Push right</option>
-<option value="zoom-in">Zoom in</option>
-<option value="zoom-out">Zoom out</option>
-<option value="flip">Flip</option>
-<option value="none">None / Instant</option>
-
-</select>
-<label>Transition duration</label>
-<select id="photoTransitionDuration">
-<option value="300">0.3 second</option><option value="500" selected>0.5 second</option><option value="700">0.7 second</option><option value="1000">1 second</option><option value="1500">1.5 seconds</option>
-</select>
-<label>Wish opacity
-</label>
-
-<input
-  id="wishOpacity"
-  type="range"
-  min="20"
-  max="100"
-  value="88">
-
-<div class="counter">
-  <span id="wishOpacityValue">88</span>%
-</div>
 
 </div>
 
@@ -2219,6 +2211,8 @@ const wishDirection=document.getElementById("wishDirection");
 const wishText=document.getElementById("wishText");
 
 const photoFit=document.getElementById("photoFit");
+const mainPhotoSize=document.getElementById("mainPhotoSize");
+if(mainPhotoSize){mainPhotoSize.addEventListener("input",()=>{mainPhotoScale=(Number(mainPhotoSize.value)||100)/100;scheduleSaveJob();});}
 const photoTransition=document.getElementById("photoTransition");
 
 const photoOpacity=document.getElementById("photoOpacity");
@@ -2923,15 +2917,16 @@ let wishPositionOffset=0;
    Kulzzy background video, stopping above the BREAKING NEWS strip. */
 const photoBox={
   x:78,
-  y:92,
+  y:42,
   w:610,
-  h:408
+  h:455
 };
+let mainPhotoScale=1;
 
 /* The supplied background video loops continuously and is drawn into the
    same canvas as the photos/text so it is included in exported recordings. */
 const studioBackgroundVideo=document.createElement("video");
-studioBackgroundVideo.src="kulzzy-background.mp4";
+studioBackgroundVideo.src="YouCut_20261020_074020519.mp4";
 studioBackgroundVideo.muted=true;
 studioBackgroundVideo.defaultMuted=true;
 studioBackgroundVideo.loop=true;
@@ -2947,11 +2942,21 @@ const startStudioBackgroundVideo=()=>{
   if(playPromise&&typeof playPromise.catch==="function")playPromise.catch(()=>{});
 };
 studioBackgroundVideo.addEventListener("canplay",startStudioBackgroundVideo);
+studioBackgroundVideo.addEventListener("ended",()=>{studioBackgroundVideo.currentTime=0;startStudioBackgroundVideo();});
 document.addEventListener("visibilitychange",()=>{
   if(!document.hidden)startStudioBackgroundVideo();
 });
 startStudioBackgroundVideo();
 
+// Background controls: default background is embedded in this HTML, so it does not
+// depend on a separate video file being uploaded beside the page.
+const backgroundControlPanel=document.getElementById("backgroundControlPanel");
+document.getElementById("backgroundToolBtn").addEventListener("click",()=>{backgroundControlPanel.style.display="block";});
+document.getElementById("backgroundCloseBtn").addEventListener("click",()=>{backgroundControlPanel.style.display="none";});
+document.getElementById("backgroundPlayBtn").addEventListener("click",()=>startStudioBackgroundVideo());
+document.getElementById("backgroundPauseBtn").addEventListener("click",()=>studioBackgroundVideo.pause());
+document.getElementById("backgroundRestartBtn").addEventListener("click",()=>{studioBackgroundVideo.currentTime=0;startStudioBackgroundVideo();});
+document.getElementById("backgroundVideoInput").addEventListener("change",e=>{const f=e.target.files&&e.target.files[0];if(!f)return;const url=URL.createObjectURL(f);studioBackgroundVideo.pause();studioBackgroundVideo.src=url;studioBackgroundVideo.loop=true;studioBackgroundVideo.load();startStudioBackgroundVideo();});
 
 /* =========================================================
    UTILITY
@@ -3277,8 +3282,8 @@ function drawPhotoFrame(
   }else{
 
     ctx.scale(
-      (flipX?-1:1)*scale,
-      scale
+      (flipX?-1:1)*scale*mainPhotoScale,
+      scale*mainPhotoScale
     );
 
   }
@@ -3296,7 +3301,7 @@ function drawPhotoFrame(
   drawContainImage(
     img,
     photoBox,
-    photoFit.value
+    photoFit.value||"cover"
   );
 
   ctx.restore();
@@ -4520,16 +4525,7 @@ function render(now){
 
   drawBackground();
 
-  if(volumeEffectLayerMode==="below")
-    drawVolumeEffect();
-
   drawCurrentPhoto(now);
-
-  if(volumeEffectLayerMode==="above")
-    drawVolumeEffect();
-
-  if(kulzzyBannerLoaded && bannerEffectLayerMode==="above")
-    drawDefaultKulzzyBanner();
 
   drawWishes(dt);
 
@@ -4538,12 +4534,6 @@ function render(now){
   drawCelebrantText();
 
   drawCameraOverlay();
-
-  if(kulzzyBannerLoaded && bannerEffectLayerMode==="over")
-    drawDefaultKulzzyBanner();
-
-  if(volumeEffectLayerMode==="over")
-    drawVolumeEffect();
 
   requestAnimationFrame(render);
 }
@@ -4679,13 +4669,20 @@ photoInput.addEventListener(
   "change",
   async e=>{
 
-    const files=[
-      ...e.target.files
-    ];
-
+    const files=[...e.target.files];
+    const remaining=Math.max(0,10-photos.length);
+    if(remaining===0){
+      alert("You can add a maximum of 10 main pictures. Remove a picture before adding another.");
+      photoInput.value="";
+      return;
+    }
+    const acceptedFiles=files.filter(file=>file.type.startsWith("image/")).slice(0,remaining);
+    if(files.filter(file=>file.type.startsWith("image/")).length>remaining){
+      alert("Only 10 main pictures are allowed. The remaining available pictures will be added.");
+    }
     const loaded=[];
 
-    for(const file of files){
+    for(const file of acceptedFiles){
 
       if(!file.type.startsWith("image/")){
         continue;
