@@ -1159,6 +1159,7 @@ document.addEventListener("DOMContentLoaded",()=>{
      FEATURE PAGES
 ===================================================== -->
 
+<div id="studioEffectsPanel" style="display:none;position:fixed;z-index:100000;left:50%;top:50%;transform:translate(-50%,-50%);width:min(92vw,380px);max-height:85vh;overflow:auto;padding:16px;background:#06152b;border:2px solid #d8ad35;border-radius:14px;box-shadow:0 12px 40px #000;color:#fff"><h3>EFFECTS & LAYER ORDER</h3><label style="display:block;margin:10px 0">Background layer<select id="effectBackgroundLayer" style="width:100%;padding:9px"><option value="back">Background behind everything</option><option value="front">Background in front (may cover content)</option></select></label><label style="display:block;margin:10px 0">Main pictures<select id="effectPictureLayer" style="width:100%;padding:9px"><option value="front">Pictures above background</option><option value="back">Pictures below wishes/text</option></select></label><label style="display:block;margin:10px 0">Wishes<select id="effectWishesLayer" style="width:100%;padding:9px"><option value="front">Wishes above pictures</option><option value="back">Wishes behind pictures</option></select></label><label style="display:block;margin:10px 0">Celebrant text<select id="effectTextLayer" style="width:100%;padding:9px"><option value="front">Text in front</option><option value="back">Text behind pictures</option></select></label><button class="btn gold" id="effectApplyBtn" type="button">SAVE LAYER SETTINGS</button><button class="btn red" id="effectCloseBtn" type="button">CLOSE</button><p id="effectStatus" style="font-size:12px;color:#f5d46a">Choose the desired layer order.</p></div>
 <div id="backgroundControlPanel" style="display:none;position:fixed;z-index:99999;left:50%;top:50%;transform:translate(-50%,-50%);width:min(92vw,360px);max-height:85vh;overflow:auto;padding:16px;background:#06152b;border:2px solid #d8ad35;border-radius:14px;box-shadow:0 12px 40px #000;color:#fff">
 <h3 style="margin:0 0 12px">BACKGROUND CONTROLS</h3>
 <label style="display:block;margin:8px 0;font-size:13px">Choose a new background video from your phone
@@ -1166,7 +1167,7 @@ document.addEventListener("DOMContentLoaded",()=>{
 <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
 <button class="btn green" id="backgroundChooseBtn" type="button">＋ CHOOSE VIDEO</button><button class="btn green" id="backgroundPlayBtn" type="button">▶ PLAY</button>
 <button class="btn gold" id="backgroundPauseBtn" type="button">Ⅱ PAUSE</button>
-<button class="btn" id="backgroundRestartBtn" type="button">↻ RESTART</button>
+<button class="btn" id="backgroundRestartBtn" type="button">↻ RESTART</button><button class="btn gold" id="backgroundForeverBtn" type="button" aria-pressed="true">∞ FOREVER PLAY: ON</button>
 <button class="btn red" id="backgroundCloseBtn" type="button">CLOSE</button>
 </div><p style="font-size:11px;color:#c5d5eb">The background is included in the canvas recording. Keep the video muted for smooth recording.</p></div>
 
@@ -2952,7 +2953,7 @@ const startStudioBackgroundVideo=()=>{
 studioBackgroundVideo.addEventListener("loadeddata",()=>{setBackgroundStatus("Video loaded. Background is ready.");startStudioBackgroundVideo();});
 studioBackgroundVideo.addEventListener("error",()=>{setBackgroundStatus("Default video unavailable. Choose a background video from your phone above.");});
 studioBackgroundVideo.addEventListener("canplay",startStudioBackgroundVideo);
-studioBackgroundVideo.addEventListener("ended",()=>{studioBackgroundVideo.currentTime=0;startStudioBackgroundVideo();});
+studioBackgroundVideo.addEventListener("ended",()=>{if(backgroundForeverPlay){try{studioBackgroundVideo.currentTime=0;}catch(e){}startStudioBackgroundVideo();}});
 document.addEventListener("visibilitychange",()=>{
   if(!document.hidden)startStudioBackgroundVideo();
 });
@@ -2961,6 +2962,12 @@ startStudioBackgroundVideo();
 // Background controls: default background is embedded in this HTML, so it does not
 // depend on a separate video file being uploaded beside the page.
 const backgroundControlPanel=document.getElementById("backgroundControlPanel");
+const studioEffectsPanel=document.getElementById("studioEffectsPanel");
+document.getElementById("effectCloseBtn").addEventListener("click",()=>studioEffectsPanel.style.display="none");
+document.getElementById("effectApplyBtn").addEventListener("click",()=>{const order={background:document.getElementById("effectBackgroundLayer").value,pictures:document.getElementById("effectPictureLayer").value,wishes:document.getElementById("effectWishesLayer").value,text:document.getElementById("effectTextLayer").value};try{localStorage.setItem("kulzzyStudioLayerOrder",JSON.stringify(order));}catch(e){}document.getElementById("effectStatus").textContent="Layer settings saved on this device.";});
+const effectToolButton=[...document.querySelectorAll("button")].find(b=>/EFFECT/i.test(b.innerText||b.textContent||"") && b.id!=="effectApplyBtn");
+if(effectToolButton)effectToolButton.addEventListener("click",()=>{studioEffectsPanel.style.display="block";});
+
 document.getElementById("backgroundToolBtn").addEventListener("click",()=>{backgroundControlPanel.style.display="block";});
 document.getElementById("backgroundCloseBtn").addEventListener("click",()=>{backgroundControlPanel.style.display="none";});
 document.getElementById("backgroundChooseBtn").addEventListener("click",()=>document.getElementById("backgroundVideoInput").click());
@@ -2968,6 +2975,9 @@ document.getElementById("backgroundPlayBtn").addEventListener("click",()=>startS
 document.getElementById("backgroundPauseBtn").addEventListener("click",()=>studioBackgroundVideo.pause());
 document.getElementById("backgroundRestartBtn").addEventListener("click",()=>{studioBackgroundVideo.currentTime=0;startStudioBackgroundVideo();});
 let selectedBackgroundObjectURL=null;
+let backgroundForeverPlay=true;
+const backgroundForeverBtn=document.getElementById("backgroundForeverBtn");
+backgroundForeverBtn.addEventListener("click",()=>{backgroundForeverPlay=!backgroundForeverPlay;studioBackgroundVideo.loop=backgroundForeverPlay;backgroundForeverBtn.textContent=backgroundForeverPlay?"∞ FOREVER PLAY: ON":"∞ FOREVER PLAY: OFF";backgroundForeverBtn.setAttribute("aria-pressed",String(backgroundForeverPlay));if(backgroundForeverPlay)startStudioBackgroundVideo();setBackgroundStatus(backgroundForeverPlay?"Forever Play is ON. Background repeats continuously.":"Forever Play is OFF. Background stops at the end.");});
 document.getElementById("backgroundVideoInput").addEventListener("change",e=>{
   const f=e.target.files&&e.target.files[0];
   if(!f)return;
@@ -2978,7 +2988,7 @@ document.getElementById("backgroundVideoInput").addEventListener("change",e=>{
   if(selectedBackgroundObjectURL)URL.revokeObjectURL(selectedBackgroundObjectURL);
   selectedBackgroundObjectURL=URL.createObjectURL(f);
   studioBackgroundVideo.src=selectedBackgroundObjectURL;
-  studioBackgroundVideo.loop=true;
+  studioBackgroundVideo.loop=backgroundForeverPlay;
   studioBackgroundVideo.load();
   setBackgroundStatus("Loading: "+f.name);
   // The file chooser is a user gesture, so request playback immediately.
