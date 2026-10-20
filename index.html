@@ -1669,8 +1669,8 @@ input[type=range]{
 <input
   id="celebrantTextSize"
   type="range"
-  min="18"
-  max="100"
+  min="12"
+  max="140"
   value="42">
 
 <div class="counter">
@@ -2910,7 +2910,7 @@ let bottomPictureDragState=null;
 
 let activeMediaGesture=null;
 
-let celebrantTextY=H-120;
+let celebrantTextY=555;
 
 let draggingCelebrantText=false;
 let celebrantTextDragOffsetY=0;
@@ -2919,12 +2919,38 @@ let wishPositionDragPointerId=null;
 let wishPositionDragLastY=0;
 let wishPositionOffset=0;
 
+/* Main photo is confined to the empty picture area in the supplied
+   Kulzzy background video, stopping above the BREAKING NEWS strip. */
 const photoBox={
-  x:0,
-  y:0,
-  w:W,
-  h:H
+  x:78,
+  y:92,
+  w:610,
+  h:408
 };
+
+/* The supplied background video loops continuously and is drawn into the
+   same canvas as the photos/text so it is included in exported recordings. */
+const studioBackgroundVideo=document.createElement("video");
+studioBackgroundVideo.src="kulzzy-background.mp4";
+studioBackgroundVideo.muted=true;
+studioBackgroundVideo.defaultMuted=true;
+studioBackgroundVideo.loop=true;
+studioBackgroundVideo.autoplay=true;
+studioBackgroundVideo.playsInline=true;
+studioBackgroundVideo.preload="auto";
+studioBackgroundVideo.setAttribute("playsinline","");
+studioBackgroundVideo.setAttribute("webkit-playsinline","");
+studioBackgroundVideo.style.display="none";
+document.body.appendChild(studioBackgroundVideo);
+const startStudioBackgroundVideo=()=>{
+  const playPromise=studioBackgroundVideo.play();
+  if(playPromise&&typeof playPromise.catch==="function")playPromise.catch(()=>{});
+};
+studioBackgroundVideo.addEventListener("canplay",startStudioBackgroundVideo);
+document.addEventListener("visibilitychange",()=>{
+  if(!document.hidden)startStudioBackgroundVideo();
+});
+startStudioBackgroundVideo();
 
 
 /* =========================================================
@@ -3195,15 +3221,16 @@ function drawContainImage(img,box,fit){
 
 
 function drawBackground(){
-
-  ctx.fillStyle="#000";
-
-  ctx.fillRect(
-    0,
-    0,
-    W,
-    H
-  );
+  /* Paint the full-screen moving background every frame. The source is
+     muted, looping and remains active while the canvas is recorded. */
+  if(studioBackgroundVideo.readyState>=2 &&
+     studioBackgroundVideo.videoWidth>0 &&
+     studioBackgroundVideo.videoHeight>0){
+    ctx.drawImage(studioBackgroundVideo,0,0,W,H);
+  }else{
+    ctx.fillStyle="#000";
+    ctx.fillRect(0,0,W,H);
+  }
 }
 
 
@@ -8159,6 +8186,9 @@ startVideoBtn.addEventListener(
       recordCanvas=canvas;
       recordCtx=null;
 
+      /* Keep the background video advancing during capture on mobile browsers. */
+      startStudioBackgroundVideo();
+      await studioBackgroundVideo.play().catch(()=>{});
       const canvasStream=canvas.captureStream(30);
 
 
