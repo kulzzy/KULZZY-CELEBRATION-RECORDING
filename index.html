@@ -856,10 +856,6 @@ input[type=range]{
   }
 }
 
-/* User-requested removal of wishes UI/effects: hide any remaining wish-only
-   controls while retaining internal compatibility with saved studio projects. */
-[data-section="Wishes"], #randomWishBtn, #layerNewWish { display:none !important; }
-
 </style>
 <style id="removeKulzzyBannerAndSoundWaveUI">
 .volume-effect-source,.volume-layer-controls,#volumeEffectToggle,#volumeEffectLayer,.banner-effect-source,.banner-layer-controls,#bannerEffectToggle,#bannerEffectLayer{display:none!important}
@@ -998,7 +994,13 @@ document.addEventListener("DOMContentLoaded",()=>{
 
   </button>
 
-  <!-- WISHES tool removed as requested. -->
+  <button
+    class="tool-btn"
+    data-section="Wishes"
+    type="button">
+    <span class="tool-icon">✦</span>
+    <span class="tool-label">WISHES</span>
+  </button>
 
   <button
     class="tool-btn"
@@ -1363,6 +1365,9 @@ document.addEventListener("DOMContentLoaded",()=>{
   value="#ffffff"
   style="width:100%;height:34px;padding:3px;background:#06152b;border:1px solid #35547e;border-radius:7px">
 
+<label>Country name color</label>
+<input id="wishCountryColor" type="color" value="#ffffff" style="width:100%;height:34px;padding:3px;background:#06152b;border:1px solid #35547e;border-radius:7px">
+
 <label>Wish label</label>
 <select id="wishLabel">
   <option value="none">None</option>
@@ -1412,12 +1417,13 @@ document.addEventListener("DOMContentLoaded",()=>{
   id="wishCount"
   type="range"
   min="1"
-  max="28"
-  value="14">
+  max="3"
+  step="1"
+  value="3">
 
 <div class="counter">
-  <span id="wishCountValue">14</span>
-  moving wishes
+  <span id="wishCountValue">3</span>
+  moving wishes on screen (1–3)
 </div>
 
 <label>Wish speed</label>
@@ -1439,12 +1445,12 @@ document.addEventListener("DOMContentLoaded",()=>{
 <input
   id="wishSize"
   type="range"
-  min="10"
-  max="36"
-  value="18">
+  min="18"
+  max="90"
+  value="36">
 
 <div class="counter">
-  <span id="wishSizeValue">18</span>
+  <span id="wishSizeValue">36</span>
   px
 </div>
 
@@ -1453,13 +1459,14 @@ document.addEventListener("DOMContentLoaded",()=>{
 <input
   id="wishSpacing"
   type="range"
-  min="10"
-  max="180"
-  value="40">
+  min="0"
+  max="20"
+  step="1"
+  value="2">
 
 <div class="counter">
-  <span id="wishSpacingValue">40</span>
-  space
+  <span id="wishSpacingValue">2</span>
+  character spaces between wishes
 </div>
 
 </div>
@@ -1968,6 +1975,16 @@ Text outline
   value="GOOD THINGS OF LIFE TO YOU">
 
 <label>
+  Country displayed under each wish
+</label>
+<input
+  id="wishLocationText"
+  type="text"
+  maxlength="80"
+  value="WORLDWIDE"
+  placeholder="WORLDWIDE or enter country">
+
+<label>
   Camera overlay
 </label>
 
@@ -2273,6 +2290,7 @@ const photoFlip=document.getElementById("photoFlip");
 const nextPhotoFeatureBtn=document.getElementById("nextPhotoFeatureBtn");
 
 const wishColor=document.getElementById("wishColor");
+const wishCountryColor=document.getElementById("wishCountryColor");
 const wishLabel=document.getElementById("wishLabel");
 const wishLabelColor=document.getElementById("wishLabelColor");
 const wishBorder=document.getElementById("wishBorder");
@@ -3123,12 +3141,77 @@ function formatWishAmount(n){
 }
 
 function newWish(){
-  // Keep wish wording exactly as entered by the user; no generated amount prefix.
-  return "";
+
+  const min=Math.max(
+    1000000,
+    Number(minWishInput.value)||1000000
+  );
+
+  const max=Math.min(
+    999000000000000,
+    Number(maxWishInput.value)||
+    999000000000000
+  );
+
+  const low=Math.min(min,max);
+  const high=Math.max(min,max);
+
+  const units=[
+    1000000,
+    1000000000,
+    1000000000000
+  ];
+
+  const allowed=units.filter(
+    unit=>unit<=high&&unit*999>=low
+  );
+
+  const unit=allowed.length
+    ?allowed[
+      randomInt(0,allowed.length-1)
+    ]
+    :1000000;
+
+  const minAmount=
+    Math.max(
+      1,
+      Math.ceil(low/unit)
+    );
+
+  const maxAmount=
+    Math.min(
+      999,
+      Math.floor(high/unit)
+    );
+
+  const amount=
+    minAmount<=maxAmount
+      ?randomInt(minAmount,maxAmount)
+      :Math.min(
+        999,
+        Math.max(
+          1,
+          Math.floor(
+            randomInt(low,high)/unit
+          )
+        )
+      );
+
+  const name=
+    unit===1000000000000
+      ?"trillion"
+      :unit===1000000000
+        ?"billion"
+        :"million";
+
+  return amount+" "+name;
 }
 
+
 function wishString(){
-  return (wishText.value.trim() || "GOOD THINGS OF LIFE TO YOU");
+  const wording=(wishText.value.trim() || "GOOD THINGS IN LIFE TO YOU");
+  const amount=newWish();
+  return amount+" "+wording;
 }
 
 function makeWishes(){
@@ -3159,12 +3242,13 @@ function makeWishes(){
 
     const wish={
       text,
+      country:GLOBAL_WISH_COUNTRIES[Math.floor(Math.random()*GLOBAL_WISH_COUNTRIES.length)],
       x:box.x+box.w*(i+.5)/count,
       y:box.y+box.h*(.35+Math.random()*.3),
       vx,vy,size,rotation:0,
       opacity:.82+Math.random()*.18,
       lane:0,liveOnAir,
-      spawnGap:Math.max(20,Number(wishSpacing.value)||80)
+      spawnGap:Math.max(2,Number(wishSpacing.value)||2)
     };
     fitWishToMovementBox(wish);
     wishes.push(wish);
@@ -4574,7 +4658,7 @@ function drawCameraOverlay(){
    Coordinates scale with the studio canvas, so the movement stays inside the
    same box on portrait screens of different sizes. */
 function getWishMovementBox(){
-  return {x:W*0.112,y:H*0.616,w:W*0.776,h:H*0.078};
+  return {x:W*0.112,y:H*0.585,w:W*0.776,h:H*0.145};
 }
 
 function fitWishToMovementBox(w){
@@ -4604,174 +4688,241 @@ function fitWishToMovementBox(w){
   return {box,halfW,halfH};
 }
 
-function drawWishes(dt){
+/* Transparent full-canvas moving wishes. Each wish stays in its own lane and
+   travels horizontally from one screen edge to the other. */
+let studioAppStyleWishCards=[];
+let studioAppStyleWishesChangedAt=0;
+let studioWishConfiguredCount=0;
+let studioWishSpawnCounter=0;
 
-  const speedScale=dt/1000;
-  const direction=wishDirection.value;
-
-  ctx.save();
-  const movementBox=getWishMovementBox();
-  ctx.beginPath();
-  ctx.rect(movementBox.x,movementBox.y,movementBox.w,movementBox.h);
-  ctx.clip();
-  ctx.textAlign="center";
-  ctx.textBaseline="middle";
-
-  function metrics(w){
-    const displayText=w.liveOnAir?"LIVE ON-AIR • "+w.text:w.text;
-    ctx.font=`900 ${Math.max(10,w.size)}px Arial, Helvetica, sans-serif`;
-    const textW=ctx.measureText(displayText).width;
-    const padX=w.liveOnAir?18:12;
-    const padY=8;
-    return {
-      text:displayText,
-      halfW:Math.max(18,textW/2),
-      halfH:Math.max(10,w.size/2),
-      boxW:textW+padX*2,
-      boxH:Math.max(w.size,textW? w.size+padY*2:w.size),
-      padX,padY
-    };
-  }
-
-  function inside(w,m){
-    const r=Math.abs(w.rotation||0);
-    const hw=(Math.abs(Math.cos(r))*m.boxW/2)+(Math.abs(Math.sin(r))*m.boxH/2);
-    const hh=(Math.abs(Math.sin(r))*m.boxW/2)+(Math.abs(Math.cos(r))*m.boxH/2);
-    w.x=Math.max(hw+4,Math.min(W-hw-4,w.x));
-    w.y=Math.max(hh+4,Math.min(H-hh-4,w.y));
-  }
-
-  function addReplacementWish(){
-    const box=getWishMovementBox();
-    const speed=Math.max(1,Number(wishSpeedInput.value)||1);
-    const sizeBase=Math.max(10,Number(wishSizeInput.value)||18);
-    const direction=wishDirection.value;
-    const size=sizeBase*(.82+Math.random()*.08);
-    const text=wishString();
-    const liveOnAir=direction.startsWith("live-");
-    let vx=(Math.random()-.5)*speed,vy=(Math.random()-.5)*speed;
-    if(["left","slide-left","live-left"].includes(direction)){vx=-speed;vy=(Math.random()-.5)*speed*.45;}
-    else if(["right","slide-right","live-right"].includes(direction)){vx=speed;vy=(Math.random()-.5)*speed*.45;}
-    else if(["up","live-up"].includes(direction)){vy=-speed;vx=(Math.random()-.5)*speed*.45;}
-    else if(direction==="down"){vy=speed;vx=(Math.random()-.5)*speed*.45;}
-    else if(direction==="diagonal"){vx=speed*.7;vy=-speed*.7;}
-
-    /* New wishes enter from the opposite edge, creating a continuous ticker
-       rather than bouncing back at the edge. Canvas clipping keeps them inside. */
-    const entryX = vx < 0 ? box.x+box.w+size : (vx > 0 ? box.x-size : box.x+box.w*(.2+Math.random()*.6));
-    const entryY = vy < 0 ? box.y+box.h+size : (vy > 0 ? box.y-size : box.y+box.h*(.25+Math.random()*.5));
-    const wish={
-      text,
-      x:entryX,
-      y:entryY,
-      vx,vy,size,rotation:0,
-      opacity:.82+Math.random()*.18,
-      lane:0,liveOnAir,
-      spawnGap:Math.max(20,Number(wishSpacing.value)||80)
-    };
-    /* Preserve the off-screen entry point; fit sizing without clamping position. */
-    const savedX=wish.x, savedY=wish.y;
-    fitWishToMovementBox(wish);
-    wish.x=savedX; wish.y=savedY;
-    wishes.push(wish);
-  }
-
-  function removeAndReplace(index){
-    wishes.splice(index,1);
-    addReplacementWish();
-  }
-
-  for(let i=0;i<wishes.length;i++){
-    const w=wishes[i];
-    const bounds=fitWishToMovementBox(w);
-    const box=bounds.box;
-    const halfW=bounds.halfW;
-    const halfH=bounds.halfH;
-    /* Stable continuous ticker: move every wish left at a visible,
-       frame-rate-independent pace, keeping its baseline within the nameplate.
-       Once the entire wish leaves the left edge, re-enter it from the right. */
-    const speedSetting=Math.max(1,Number(wishSpeedInput.value)||1);
-    const pixelsPerSecond=Math.max(24,speedSetting*28);
-    w.x-=pixelsPerSecond*(dt/1000);
-    const minY=box.y+halfH+2;
-    const maxY=box.y+box.h-halfH-2;
-    w.y=Math.max(minY,Math.min(maxY,Number(w.y)||box.y+box.h/2));
-    if(w.x < box.x-halfW){
-      w.x=box.x+box.w+halfW;
-      /* Keep the next wish inside the vertical bounds of the box. */
-      w.y=minY+Math.random()*Math.max(0,maxY-minY);
-    }
-
-    const m=metrics(w);
-
-    ctx.font=`900 ${Math.max(10,w.size)}px Arial, Helvetica, sans-serif`;
-    const displayText=m.text;
-    const padX=m.padX;
-    const padY=m.padY;
-    const boxW=m.boxW;
-    const boxH=m.boxH;
-
-    ctx.save();
-    ctx.translate(w.x,w.y);
-    ctx.rotate(w.rotation||0);
-    ctx.globalAlpha=(Number(wishOpacity.value)/100)*w.opacity;
-
-    const labelMode=wishLabel.value;
-    const borderOn=wishBorder.value==="on";
-    const shadowOn=wishShadow.value==="on";
-
-    if(labelMode!=="none"){
-      ctx.save();
-      ctx.beginPath();
-      if(labelMode==="round"){
-        ctx.roundRect(-boxW/2,-boxH/2,boxW,boxH,boxH/2);
-      }else{
-        ctx.roundRect(-boxW/2,-boxH/2,boxW,boxH,Math.min(8,boxH/4));
-      }
-      ctx.fillStyle=wishLabelColor.value||"#06152b";
-      ctx.shadowColor=shadowOn?(wishShadowColor.value||"#000000"):"transparent";
-      ctx.shadowBlur=shadowOn?Math.max(4,w.size*.35):0;
-      ctx.shadowOffsetX=0;
-      ctx.shadowOffsetY=shadowOn?Math.max(2,w.size*.12):0;
-      ctx.fill();
-      ctx.shadowColor="transparent";
-      ctx.shadowBlur=0;
-      if(borderOn){
-        ctx.strokeStyle=wishBorderColor.value||"#fff";
-        ctx.lineWidth=Math.max(1,Number(wishBorderWidth.value)||2);
-        ctx.stroke();
-      }
-      ctx.restore();
-    }
-
-    if(shadowOn){
-      ctx.shadowColor=wishShadowColor.value||"#000000";
-      ctx.shadowBlur=Math.max(4,w.size*.32);
-      ctx.shadowOffsetX=0;
-      ctx.shadowOffsetY=Math.max(2,w.size*.10);
-    }
-
-    ctx.fillStyle=wishColor.value||"#fff";
-    ctx.fillText(displayText,0,0);
-
-    ctx.shadowColor="transparent";
-    ctx.shadowBlur=0;
-    ctx.shadowOffsetX=0;
-    ctx.shadowOffsetY=0;
-
-    if(borderOn && labelMode==="none"){
-      ctx.strokeStyle=wishBorderColor.value||"#fff";
-      ctx.lineWidth=Math.max(1,Number(wishBorderWidth.value)||2);
-      ctx.strokeText(displayText,0,0);
-    }
-
-    ctx.restore();
-  }
-
-  ctx.restore();
-  ctx.globalAlpha=1;
+function getStudioWishDirection(){
+  const setting=wishDirection?.value||"random";
+  if(["left","slide-left","live-left"].includes(setting)) return -1;
+  if(["right","slide-right","live-right"].includes(setting)) return 1;
+  /* Keep a single direction for the whole set so every wish moves in parallel. */
+  return Math.random()<.5?-1:1;
 }
 
+let studioWishBatchDirection=null;
+function studioWishGapPx(){
+  return Math.max(0,Number(wishSpacing?.value)||0);
+}
+
+function measureStudioWishCard(item, wishFont){
+  const countryFont=Math.max(14,wishFont*.68);
+  const label=(item.liveOnAir?"LIVE ON-AIR • ":"")+item.text;
+  ctx.save();
+  ctx.font=`900 ${wishFont}px Arial, Helvetica, sans-serif`;
+  const wishWidth=ctx.measureText(label).width;
+  ctx.font=`800 ${countryFont}px Arial, Helvetica, sans-serif`;
+  const countryWidth=ctx.measureText(item.country||"").width;
+  ctx.restore();
+  /* Include the label padding in the travelling width so the next card's
+     gap is measured between complete wish-and-country labels. */
+  const pad=(wishLabel?.value||"none")==="none"?0:Math.max(8,countryFont*.38)*2;
+  return Math.max(wishWidth,countryWidth)+pad;
+}
+
+function makeStudioWishCard(index, box, now=performance.now(), initial=false){
+  const units=["million","billion","trillion"];
+  const number=1+Math.floor(Math.random()*9999);
+  const unit=units[Math.floor(Math.random()*units.length)];
+  const text=typeof wishString==="function" ? wishString() : number.toLocaleString("en-US")+" "+unit+" good things in life to you";
+  const countries=Array.isArray(GLOBAL_WISH_COUNTRIES)&&GLOBAL_WISH_COUNTRIES.length
+    ?GLOBAL_WISH_COUNTRIES:["Nigeria","Ghana","United Kingdom","United States","Canada"];
+  const sizeSetting=Math.max(18,Number(wishSizeInput?.value)||36);
+  const country=countries[Math.floor(Math.random()*countries.length)];
+  const item={
+    text,
+    country,
+    x:0,
+    y:H/2,
+    w:1,
+    h:Math.max(sizeSetting*1.65,1),
+    direction:studioWishBatchDirection ?? getStudioWishDirection(),
+    speedFactor:1,
+    speed:Math.max(10,Number(wishSpeedInput?.value)||42)*2.5,
+    size:sizeSetting,
+    opacity:Math.max(0,Math.min(1,(Number(wishOpacity?.value)||100)/100)),
+    index,
+    bornAt:now,
+    spawnId:studioWishSpawnCounter++,
+    offsetY:0
+  };
+  item.w=measureStudioWishCard(item,sizeSetting);
+  return item;
+}
+
+function studioWishGapFor(item){
+  const spaces=Math.max(0,Math.min(20,Number(wishSpacing?.value)||0));
+  const font=Math.max(18,Number(wishSizeInput?.value)||36);
+  ctx.save();ctx.font=`900 ${font}px Arial, Helvetica, sans-serif`;
+  const oneSpace=ctx.measureText(" ").width||font*.28;
+  ctx.restore();
+  return spaces*oneSpace;
+}
+
+function positionStudioWishLanes(now){
+  const count=Math.max(1,Math.min(3,Number(wishCountInput?.value)||3));
+  const font=Math.max(18,Number(wishSizeInput?.value)||36);
+  /* Keep parallel rows close together as a compact group around the canvas
+     centre instead of spreading them across the whole screen. */
+  const laneGap=Math.max(font*1.48,Math.min(H/(count+1),font*1.8));
+  const groupHeight=(count-1)*laneGap;
+  studioAppStyleWishCards.forEach((item,i)=>{
+    item.y=H/2-groupHeight/2+i*laneGap+(item.offsetY||0);
+    item.h=laneGap;
+  });
+}
+
+function makeStudioAppStyleWishCards(now=performance.now()){
+  const count=Math.max(1,Math.min(3,Number(wishCountInput?.value)||3));
+  const box={x:0,y:0,w:W,h:H};
+  studioWishBatchDirection=getStudioWishDirection();
+  studioWishConfiguredCount=count;
+  studioAppStyleWishCards=Array.from({length:count},(_,i)=>makeStudioWishCard(i,box,now,true));
+  positionStudioWishLanes(now);
+  const gap=studioWishGapFor();
+  /* All cards travel in parallel. They are queued just outside the same
+     starting edge, close enough to follow one another rather than appearing
+     together in the middle of the canvas. */
+  if(studioWishBatchDirection>0){
+    let edge=-2;
+    studioAppStyleWishCards.forEach(item=>{item.x=edge-item.w;edge=item.x-gap;item.bornAt=now;});
+  }else{
+    let edge=W+2;
+    studioAppStyleWishCards.forEach(item=>{item.x=edge;edge=item.x+item.w+gap;item.bornAt=now;});
+  }
+  studioAppStyleWishesChangedAt=now;
+}
+
+function drawWishes(dt){
+  const now=performance.now();
+  const count=Math.max(1,Math.min(3,Number(wishCountInput?.value)||3));
+  if(!studioAppStyleWishCards.length || studioWishConfiguredCount!==count) makeStudioAppStyleWishCards(now);
+  const direction=studioWishBatchDirection ?? getStudioWishDirection();
+  const speed=Math.max(10,Number(wishSpeedInput?.value)||42)*2.5;
+  const wishFont=Math.max(18,Number(wishSizeInput?.value)||36);
+  const countryFont=Math.max(14,wishFont*.68);
+  const gap=studioWishGapFor();
+  positionStudioWishLanes(now);
+
+  /* One shared direction and speed means genuinely parallel motion. As each
+     wish exits, recycle it behind the last card in the queue so the stream
+     never waits for an entire screen-width before another wish appears. */
+  studioAppStyleWishCards.forEach((item,index)=>{
+    item.direction=direction;
+    item.speed=speed;
+    item.size=wishFont;
+    item.opacity=Math.max(0,Math.min(1,(Number(wishOpacity?.value)||100)/100));
+    item.index=index;
+    item.w=measureStudioWishCard(item,wishFont);
+    item.y=H/2-((count-1)*Math.max(wishFont*1.48,Math.min(H/(count+1),wishFont*1.8)))/2+index*Math.max(wishFont*1.48,Math.min(H/(count+1),wishFont*1.8))+(item.offsetY||0);
+    item.x += direction*speed*(Math.max(0,Math.min(50,dt))/1000);
+
+    const hasExited=(direction<0 && item.x+item.w<0) || (direction>0 && item.x>W);
+    if(hasExited){
+      const fresh=makeStudioWishCard(index,{x:0,y:0,w:W,h:H},now,false);
+      fresh.direction=direction;
+      fresh.speed=speed;
+      fresh.offsetY=item.offsetY||0;
+      fresh.y=item.y;
+      if(direction>0){
+        /* Moving right: place the recycled card behind the leftmost card. */
+        let leftmost=null;
+        studioAppStyleWishCards.forEach((other,j)=>{if(j!==index&&(!leftmost||other.x<leftmost.x))leftmost=other;});
+        fresh.x=leftmost ? leftmost.x-fresh.w-gap : -fresh.w-2;
+      }else{
+        /* Moving left: place it behind the rightmost card. */
+        let rightmost=null;
+        studioAppStyleWishCards.forEach((other,j)=>{if(j!==index&&(!rightmost||other.x+other.w>rightmost.x+rightmost.w))rightmost=other;});
+        fresh.x=rightmost ? rightmost.x+rightmost.w+gap : W+2;
+      }
+      studioAppStyleWishCards[index]=fresh;
+      item=fresh;
+    }
+
+    const x=item.x;
+    const y=item.y;
+    ctx.save();
+    ctx.globalAlpha=item.opacity;
+    ctx.textAlign="left";
+    ctx.textBaseline="middle";
+    ctx.shadowColor=(wishShadow?.value==="on" ? (wishShadowColor?.value||"#000000") : "transparent");
+    ctx.shadowBlur=wishShadow?.value==="on" ? Math.max(2,wishFont*.16) : 0;
+    const wishY=y-wishFont*.32;
+    ctx.font=`900 ${wishFont}px Arial, Helvetica, sans-serif`;
+    const wishWidth=ctx.measureText(item.text).width;
+    ctx.shadowBlur=wishShadow?.value==="on" ? Math.max(1,countryFont*.12) : 0;
+    ctx.font=`800 ${countryFont}px Arial, Helvetica, sans-serif`;
+    const countryY=y+wishFont*.55;
+    const countryWidth=ctx.measureText(item.country).width;
+    const labelMode=wishLabel?.value||"none";
+    if(labelMode!=="none"){
+      const padX=Math.max(8,countryFont*.38), padY=Math.max(4,countryFont*.18);
+      const labelW=Math.max(wishWidth,countryWidth)+padX*2;
+      const labelTop=wishY-wishFont*.58-padY;
+      const labelBottom=countryY+countryFont*.58+padY;
+      const labelH=labelBottom-labelTop;
+      const labelX=x-padX;
+      ctx.save();ctx.shadowBlur=0;ctx.globalAlpha=item.opacity;ctx.fillStyle=wishLabelColor?.value||"#06152b";
+      if(labelMode==="round"){
+        const radius=Math.min(labelH/2,Math.max(4,countryFont*.35));
+        ctx.beginPath();ctx.moveTo(labelX+radius,labelTop);ctx.arcTo(labelX+labelW,labelTop,labelX+labelW,labelTop+labelH,radius);ctx.arcTo(labelX+labelW,labelTop+labelH,labelX,labelTop+labelH,radius);ctx.arcTo(labelX,labelTop+labelH,labelX,labelTop,radius);ctx.arcTo(labelX,labelTop,labelX+labelW,labelTop,radius);ctx.closePath();ctx.fill();
+      }else{ctx.fillRect(labelX,labelTop,labelW,labelH);}
+      ctx.restore();
+    }
+    ctx.font=`900 ${wishFont}px Arial, Helvetica, sans-serif`;
+    ctx.fillStyle=wishColor?.value||"#ffca31";
+    ctx.fillText(item.text,x,wishY);
+    ctx.shadowBlur=wishShadow?.value==="on" ? Math.max(1,countryFont*.12) : 0;
+    ctx.font=`800 ${countryFont}px Arial, Helvetica, sans-serif`;
+    ctx.fillStyle=wishCountryColor?.value||"#ffffff";
+    ctx.fillText(item.country,x,countryY);
+    ctx.restore();
+  });
+}
+
+const GLOBAL_WISH_COUNTRIES = ["Nigeria","Afghanistan","Albania","Algeria","Andorra","Angola","Antigua and Barbuda","Argentina","Armenia","Australia","Austria","Azerbaijan","Bahamas","Bahrain","Bangladesh","Barbados","Belarus","Belgium","Belize","Benin","Bhutan","Bolivia","Bosnia and Herzegovina","Botswana","Brazil","Brunei","Bulgaria","Burkina Faso","Burundi","Cabo Verde","Cambodia","Cameroon","Canada","Central African Republic","Chad","Chile","China","Colombia","Comoros","Congo (Congo-Brazzaville)","Costa Rica","Croatia","Cuba","Cyprus","Czechia","Côte d’Ivoire","Democratic Republic of the Congo","Denmark","Djibouti","Dominica","Dominican Republic","Ecuador","Egypt","El Salvador","Equatorial Guinea","Eritrea","Estonia","Eswatini","Ethiopia","Fiji","Finland","France","Gabon","Gambia","Georgia","Germany","Ghana","Greece","Grenada","Guatemala","Guinea","Guinea-Bissau","Guyana","Haiti","Honduras","Hungary","Iceland","India","Indonesia","Iran","Iraq","Ireland","Israel","Italy","Jamaica","Japan","Jordan","Kazakhstan","Kenya","Kiribati","Kosovo","Kuwait","Kyrgyzstan","Laos","Latvia","Lebanon","Lesotho","Liberia","Libya","Liechtenstein","Lithuania","Luxembourg","Madagascar","Malawi","Malaysia","Maldives","Mali","Malta","Marshall Islands","Mauritania","Mauritius","Mexico","Micronesia","Moldova","Monaco","Mongolia","Montenegro","Morocco","Mozambique","Myanmar","Namibia","Nauru","Nepal","Netherlands","New Zealand","Nicaragua","Niger","North Korea","North Macedonia","Norway","Oman","Pakistan","Palau","Palestine","Panama","Papua New Guinea","Paraguay","Peru","Philippines","Poland","Portugal","Qatar","Romania","Russia","Rwanda","Saint Kitts and Nevis","Saint Lucia","Saint Vincent and the Grenadines","Samoa","San Marino","Sao Tome and Principe","Saudi Arabia","Senegal","Serbia","Seychelles","Sierra Leone","Singapore","Slovakia","Slovenia","Solomon Islands","Somalia","South Africa","South Korea","South Sudan","Spain","Sri Lanka","Sudan","Suriname","Sweden","Switzerland","Syria","Taiwan","Tajikistan","Tanzania","Thailand","Timor-Leste","Togo","Tonga","Trinidad and Tobago","Tunisia","Turkey","Turkmenistan","Tuvalu","Uganda","Ukraine","United Arab Emirates","United Kingdom","United States","Uruguay","Uzbekistan","Vanuatu","Vatican City","Venezuela","Vietnam","Yemen","Zambia","Zimbabwe"];
+let globalLocationIndex = 0;
+let globalLocationChangedAt = 0;
+
+function drawWishLocation(now=performance.now()){
+  const input=document.getElementById("wishLocationText");
+  let label=(input?.value||"").trim();
+  const globalMode = !label || label.toUpperCase()==="WORLDWIDE" || label.toUpperCase()==="GLOBAL";
+  if(globalMode){
+    if(!globalLocationChangedAt) globalLocationChangedAt=now;
+    if(now-globalLocationChangedAt>=2600){
+      globalLocationIndex=(globalLocationIndex+1)%GLOBAL_WISH_COUNTRIES.length;
+      globalLocationChangedAt=now;
+    }
+    label=GLOBAL_WISH_COUNTRIES[globalLocationIndex];
+  }
+  ctx.save();
+  const fontSize=18;
+  const displayLabel="🌍 WISHES AROUND THE WORLD  •  "+label;
+  ctx.font=`800 ${fontSize}px Arial, Helvetica, sans-serif`;
+  const textWidth=ctx.measureText(displayLabel).width;
+  const padX=14, padY=8;
+  const x=W/2;
+  const y=H-34;
+  const boxW=Math.min(W-24,textWidth+padX*2);
+  const boxH=fontSize+padY*2;
+  ctx.globalAlpha=.98;
+  ctx.fillStyle="rgba(6,18,42,.96)";
+  ctx.beginPath();
+  ctx.roundRect(x-boxW/2,y-boxH/2,boxW,boxH,12);
+  ctx.fill();
+  ctx.strokeStyle="#ffd700";
+  ctx.lineWidth=2;
+  ctx.stroke();
+  ctx.fillStyle="#ffd700";
+  ctx.textAlign="center";
+  ctx.textBaseline="middle";
+  ctx.fillText(displayLabel,x,y,boxW-padX*2);
+  ctx.restore();
+}
 
 /* =========================================================
    RENDER
@@ -4808,8 +4959,6 @@ function render(now){
 
   drawCurrentPhoto(now);
 
-  /* Wishes and their visual effects are disabled as requested. */
-
   drawBottomPicture();
 
   drawCelebrantText();
@@ -4817,6 +4966,10 @@ function render(now){
   drawSlideText(now);
 
   drawCameraOverlay();
+
+  /* Always draw wishes LAST so photos, bottom picture, text and camera
+     overlays cannot cover them. */
+  drawWishes(dt);
 
   window.addEventListener("error",event=>{
   const status=document.getElementById("backgroundVideoStatus");
@@ -5509,7 +5662,7 @@ async function buildProjectPackage(){
     "slideTime","photoOpacity","photoRotation","photoFit",
     "photoTransition","photoFlip","minWish","maxWish",
     "wishCount","wishSpeed","wishSize","wishSpacing","wishPositionDrag",
-    "wishOpacity","wishDirection","wishText","wishColor","wishLabel","wishLabelColor","wishBorder","wishBorderColor","wishBorderWidth","wishShadow","wishShadowColor",
+    "wishOpacity","wishDirection","wishText","wishLocationText","wishColor","wishCountryColor","wishLabel","wishLabelColor","wishBorder","wishBorderColor","wishBorderWidth","wishShadow","wishShadowColor",
     "celebrantText","celebrantTextFont","celebrantTextSize",
     "celebrantTextOpacity","celebrantTextAlign","celebrantTextColor",
     "celebrantTextBackground","celebrantTextSpacing",
@@ -5561,7 +5714,7 @@ async function buildProjectPackage(){
   data.wishSettings={};
   [
     "minWish","maxWish","wishCount","wishSpeed","wishSize","wishSpacing",
-    "wishOpacity","wishDirection","wishText","wishColor","wishLabel",
+    "wishOpacity","wishDirection","wishText","wishLocationText","wishColor","wishCountryColor","wishLabel",
     "wishLabelColor","wishBorder","wishBorderColor","wishBorderWidth",
     "wishShadow","wishShadowColor"
   ].forEach(id=>{
@@ -6130,7 +6283,9 @@ async function saveCurrentJob(){
       "wishOpacity",
       "wishDirection",
       "wishText",
+      "wishLocationText",
       "wishColor",
+      "wishCountryColor",
       "wishLabel",
       "wishLabelColor",
       "wishBorder",
@@ -6796,6 +6951,7 @@ function collectCurrentSettings(){
     "wishDirection",
     "wishText",
     "wishColor",
+    "wishCountryColor",
     "wishLabel",
     "wishLabelColor",
     "wishBorder",
@@ -9234,6 +9390,46 @@ setTimeout(
   },
   2500
 );
+
+
+/* Drag moving wish + country together anywhere on the preview canvas. */
+let draggingStudioMovingWish=null;
+canvas.addEventListener("pointerdown",event=>{
+  if(!wishPositionDrag?.checked)return;
+  const p=getCanvasPointer(event);
+  for(let i=studioAppStyleWishCards.length-1;i>=0;i--){
+    const item=studioAppStyleWishCards[i];
+    const font=Math.max(18,Number(wishSizeInput?.value)||36);
+    ctx.save();ctx.font=`900 ${font}px Arial, Helvetica, sans-serif`;
+    const wishW=ctx.measureText(item.text).width;
+    ctx.font=`800 ${Math.max(14,font*.68)}px Arial, Helvetica, sans-serif`;
+    const countryW=ctx.measureText(item.country).width;
+    ctx.restore();
+    const left=item.x-12, right=item.x+Math.max(wishW,countryW)+18;
+    const top=item.y-font*.9, bottom=item.y+font*1.15;
+    if(performance.now()>=item.bornAt && p.x>=left&&p.x<=right&&p.y>=top&&p.y<=bottom){
+      draggingStudioMovingWish={pointerId:event.pointerId,item,startX:p.x,startY:p.y,startItemX:item.x,startOffsetY:item.offsetY||0};
+      canvas.setPointerCapture?.(event.pointerId);
+      event.preventDefault();event.stopImmediatePropagation();return;
+    }
+  }
+},{capture:true,passive:false});
+canvas.addEventListener("pointermove",event=>{
+  const g=draggingStudioMovingWish;
+  if(!g||g.pointerId!==event.pointerId)return;
+  const p=getCanvasPointer(event);
+  g.item.x=Math.max(-W,Math.min(W*2,g.startItemX+p.x-g.startX));
+  g.item.offsetY=Math.max(-H,Math.min(H,g.startOffsetY+p.y-g.startY));
+  event.preventDefault();event.stopImmediatePropagation();
+},{capture:true,passive:false});
+function finishStudioMovingWishDrag(event){
+  if(!draggingStudioMovingWish||draggingStudioMovingWish.pointerId!==event.pointerId)return;
+  draggingStudioMovingWish=null;
+  scheduleSaveJob();
+  event.preventDefault();event.stopImmediatePropagation();
+}
+canvas.addEventListener("pointerup",finishStudioMovingWishDrag,{capture:true,passive:false});
+canvas.addEventListener("pointercancel",finishStudioMovingWishDrag,{capture:true,passive:false});
 
 </script>
 
