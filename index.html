@@ -4696,17 +4696,19 @@ let studioWishConfiguredCount=0;
 let studioWishSpawnCounter=0;
 
 function getStudioWishDirection(){
-  const setting=wishDirection?.value||"random";
-  if(["left","slide-left","live-left"].includes(setting)) return -1;
-  if(["right","slide-right","live-right"].includes(setting)) return 1;
-  /* Keep a single direction for the whole set so every wish moves in parallel. */
-  return Math.random()<.5?-1:1;
+  const setting=wishDirection?.value||"right";
+  if(["left","slide-left","live-left"].includes(setting)) return {axis:"x",sign:-1};
+  if(["right","slide-right","live-right"].includes(setting)) return {axis:"x",sign:1};
+  if(["up","live-up"].includes(setting)) return {axis:"y",sign:-1};
+  if(setting==="down") return {axis:"y",sign:1};
+  /* Diagonal/random mode chooses one of the four straight directions for
+     the whole group, so all wishes remain parallel. */
+  const choices=[{axis:"x",sign:-1},{axis:"x",sign:1},{axis:"y",sign:-1},{axis:"y",sign:1}];
+  return choices[Math.floor(Math.random()*choices.length)];
 }
 
 let studioWishBatchDirection=null;
-function studioWishGapPx(){
-  return Math.max(0,Number(wishSpacing?.value)||0);
-}
+function studioWishGapPx(){ return Math.max(0,Number(wishSpacing?.value)||0); }
 
 function measureStudioWishCard(item, wishFont){
   const countryFont=Math.max(14,wishFont*.68);
@@ -4717,8 +4719,6 @@ function measureStudioWishCard(item, wishFont){
   ctx.font=`800 ${countryFont}px Arial, Helvetica, sans-serif`;
   const countryWidth=ctx.measureText(item.country||"").width;
   ctx.restore();
-  /* Include the label padding in the travelling width so the next card's
-     gap is measured between complete wish-and-country labels. */
   const pad=(wishLabel?.value||"none")==="none"?0:Math.max(8,countryFont*.38)*2;
   return Math.max(wishWidth,countryWidth)+pad;
 }
@@ -4732,24 +4732,13 @@ function makeStudioWishCard(index, box, now=performance.now(), initial=false){
     ?GLOBAL_WISH_COUNTRIES:["Nigeria","Ghana","United Kingdom","United States","Canada"];
   const sizeSetting=Math.max(18,Number(wishSizeInput?.value)||36);
   const country=countries[Math.floor(Math.random()*countries.length)];
-  const item={
-    text,
-    country,
-    x:0,
-    y:H/2,
-    w:1,
-    h:Math.max(sizeSetting*1.65,1),
-    direction:studioWishBatchDirection ?? getStudioWishDirection(),
-    speedFactor:1,
-    speed:Math.max(10,Number(wishSpeedInput?.value)||42)*2.5,
-    size:sizeSetting,
-    opacity:Math.max(0,Math.min(1,(Number(wishOpacity?.value)||100)/100)),
-    index,
-    bornAt:now,
-    spawnId:studioWishSpawnCounter++,
-    offsetY:0
-  };
+  const item={text,country,x:0,y:H/2,w:1,h:Math.max(sizeSetting*1.65,1),
+    direction:studioWishBatchDirection||getStudioWishDirection(),speedFactor:1,
+    speed:Math.max(10,Number(wishSpeedInput?.value)||42)*2.5,size:sizeSetting,
+    opacity:Math.max(0,Math.min(1,(Number(wishOpacity?.value)||100)/100)),index,
+    bornAt:now,spawnId:studioWishSpawnCounter++,offsetY:0};
   item.w=measureStudioWishCard(item,sizeSetting);
+  item.h=Math.max(sizeSetting*1.65,1);
   return item;
 }
 
@@ -4757,41 +4746,45 @@ function studioWishGapFor(item){
   const spaces=Math.max(0,Math.min(20,Number(wishSpacing?.value)||0));
   const font=Math.max(18,Number(wishSizeInput?.value)||36);
   ctx.save();ctx.font=`900 ${font}px Arial, Helvetica, sans-serif`;
-  const oneSpace=ctx.measureText(" ").width||font*.28;
-  ctx.restore();
+  const oneSpace=ctx.measureText(" ").width||font*.28;ctx.restore();
   return spaces*oneSpace;
 }
 
 function positionStudioWishLanes(now){
   const count=Math.max(1,Math.min(3,Number(wishCountInput?.value)||3));
   const font=Math.max(18,Number(wishSizeInput?.value)||36);
-  /* Keep parallel rows close together as a compact group around the canvas
-     centre instead of spreading them across the whole screen. */
-  const laneGap=Math.max(font*1.48,Math.min(H/(count+1),font*1.8));
-  const groupHeight=(count-1)*laneGap;
-  studioAppStyleWishCards.forEach((item,i)=>{
-    item.y=H/2-groupHeight/2+i*laneGap+(item.offsetY||0);
-    item.h=laneGap;
-  });
+  const direction=studioWishBatchDirection||{axis:"x",sign:1};
+  if(direction.axis==="y"){
+    const laneGap=Math.max(24,Math.min(W/(count+1),font*1.5));
+    const groupWidth=(count-1)*laneGap;
+    studioAppStyleWishCards.forEach((item,i)=>{
+      item.x=(W-item.w)/2-groupWidth/2+i*laneGap;
+      item.h=Math.max(font*1.65,1);
+    });
+  }else{
+    const laneGap=Math.max(font*1.48,Math.min(H/(count+1),font*1.8));
+    const groupHeight=(count-1)*laneGap;
+    studioAppStyleWishCards.forEach((item,i)=>{
+      item.y=H/2-groupHeight/2+i*laneGap+(item.offsetY||0);
+      item.h=laneGap;
+    });
+  }
 }
 
 function makeStudioAppStyleWishCards(now=performance.now()){
   const count=Math.max(1,Math.min(3,Number(wishCountInput?.value)||3));
-  const box={x:0,y:0,w:W,h:H};
   studioWishBatchDirection=getStudioWishDirection();
   studioWishConfiguredCount=count;
-  studioAppStyleWishCards=Array.from({length:count},(_,i)=>makeStudioWishCard(i,box,now,true));
+  studioAppStyleWishCards=Array.from({length:count},(_,i)=>makeStudioWishCard(i,{x:0,y:0,w:W,h:H},now,true));
   positionStudioWishLanes(now);
   const gap=studioWishGapFor();
-  /* All cards travel in parallel. They are queued just outside the same
-     starting edge, close enough to follow one another rather than appearing
-     together in the middle of the canvas. */
-  if(studioWishBatchDirection>0){
-    let edge=-2;
-    studioAppStyleWishCards.forEach(item=>{item.x=edge-item.w;edge=item.x-gap;item.bornAt=now;});
+  const d=studioWishBatchDirection;
+  if(d.axis==="x"){
+    if(d.sign>0){let edge=-2;studioAppStyleWishCards.forEach(item=>{item.x=edge-item.w;edge=item.x-gap;});}
+    else{let edge=W+2;studioAppStyleWishCards.forEach(item=>{item.x=edge;edge=item.x+item.w+gap;});}
   }else{
-    let edge=W+2;
-    studioAppStyleWishCards.forEach(item=>{item.x=edge;edge=item.x+item.w+gap;item.bornAt=now;});
+    if(d.sign>0){let edge=-2;studioAppStyleWishCards.forEach(item=>{item.y=edge-item.h;edge=item.y-gap;});}
+    else{let edge=H+2;studioAppStyleWishCards.forEach(item=>{item.y=edge;edge=item.y+item.h+gap;});}
   }
   studioAppStyleWishesChangedAt=now;
 }
@@ -4799,89 +4792,81 @@ function makeStudioAppStyleWishCards(now=performance.now()){
 function drawWishes(dt){
   const now=performance.now();
   const count=Math.max(1,Math.min(3,Number(wishCountInput?.value)||3));
-  if(!studioAppStyleWishCards.length || studioWishConfiguredCount!==count) makeStudioAppStyleWishCards(now);
-  const direction=studioWishBatchDirection ?? getStudioWishDirection();
+  if(!studioAppStyleWishCards.length||studioWishConfiguredCount!==count)makeStudioAppStyleWishCards(now);
+  const selected=wishDirection?.value||"right";
+  const selectedKey=studioWishBatchDirection?`${studioWishBatchDirection.axis}:${studioWishBatchDirection.sign}`:"";
+  const expected=getStudioWishDirectionKey(selected);
+  if(!studioWishBatchDirection||studioWishLastSetting!==selected){
+    studioWishLastSetting=selected;
+    makeStudioAppStyleWishCards(now);
+  }
+  const direction=studioWishBatchDirection||{axis:"x",sign:1};
   const speed=Math.max(10,Number(wishSpeedInput?.value)||42)*2.5;
   const wishFont=Math.max(18,Number(wishSizeInput?.value)||36);
   const countryFont=Math.max(14,wishFont*.68);
   const gap=studioWishGapFor();
   positionStudioWishLanes(now);
 
-  /* One shared direction and speed means genuinely parallel motion. As each
-     wish exits, recycle it behind the last card in the queue so the stream
-     never waits for an entire screen-width before another wish appears. */
   studioAppStyleWishCards.forEach((item,index)=>{
-    item.direction=direction;
-    item.speed=speed;
-    item.size=wishFont;
+    item.direction=direction;item.speed=speed;item.size=wishFont;item.index=index;
     item.opacity=Math.max(0,Math.min(1,(Number(wishOpacity?.value)||100)/100));
-    item.index=index;
-    item.w=measureStudioWishCard(item,wishFont);
-    item.y=H/2-((count-1)*Math.max(wishFont*1.48,Math.min(H/(count+1),wishFont*1.8)))/2+index*Math.max(wishFont*1.48,Math.min(H/(count+1),wishFont*1.8))+(item.offsetY||0);
-    item.x += direction*speed*(Math.max(0,Math.min(50,dt))/1000);
+    item.w=measureStudioWishCard(item,wishFont);item.h=Math.max(wishFont*1.65,1);
+    if(direction.axis==="x") item.x+=direction.sign*speed*(Math.max(0,Math.min(50,dt))/1000);
+    else item.y+=direction.sign*speed*(Math.max(0,Math.min(50,dt))/1000);
 
-    const hasExited=(direction<0 && item.x+item.w<0) || (direction>0 && item.x>W);
-    if(hasExited){
+    const exited=direction.axis==="x"
+      ?(direction.sign<0?item.x+item.w<0:item.x>W)
+      :(direction.sign<0?item.y+item.h<0:item.y>H);
+    if(exited){
       const fresh=makeStudioWishCard(index,{x:0,y:0,w:W,h:H},now,false);
-      fresh.direction=direction;
-      fresh.speed=speed;
-      fresh.offsetY=item.offsetY||0;
-      fresh.y=item.y;
-      if(direction>0){
-        /* Moving right: place the recycled card behind the leftmost card. */
-        let leftmost=null;
-        studioAppStyleWishCards.forEach((other,j)=>{if(j!==index&&(!leftmost||other.x<leftmost.x))leftmost=other;});
-        fresh.x=leftmost ? leftmost.x-fresh.w-gap : -fresh.w-2;
+      fresh.direction=direction;fresh.speed=speed;fresh.offsetY=item.offsetY||0;
+      fresh.opacity=item.opacity;fresh.y=item.y;fresh.x=item.x;
+      if(direction.axis==="x"){
+        if(direction.sign>0){let leftmost=null;studioAppStyleWishCards.forEach((o,j)=>{if(j!==index&&(!leftmost||o.x<leftmost.x))leftmost=o;});fresh.x=leftmost?leftmost.x-fresh.w-gap:-fresh.w-2;}
+        else{let rightmost=null;studioAppStyleWishCards.forEach((o,j)=>{if(j!==index&&(!rightmost||o.x+o.w>rightmost.x+rightmost.w))rightmost=o;});fresh.x=rightmost?rightmost.x+rightmost.w+gap:W+2;}
       }else{
-        /* Moving left: place it behind the rightmost card. */
-        let rightmost=null;
-        studioAppStyleWishCards.forEach((other,j)=>{if(j!==index&&(!rightmost||other.x+other.w>rightmost.x+rightmost.w))rightmost=other;});
-        fresh.x=rightmost ? rightmost.x+rightmost.w+gap : W+2;
+        if(direction.sign>0){let topmost=null;studioAppStyleWishCards.forEach((o,j)=>{if(j!==index&&(!topmost||o.y<topmost.y))topmost=o;});fresh.y=topmost?topmost.y-fresh.h-gap:-fresh.h-2;}
+        else{let bottommost=null;studioAppStyleWishCards.forEach((o,j)=>{if(j!==index&&(!bottommost||o.y+o.h>bottommost.y+bottommost.h))bottommost=o;});fresh.y=bottommost?bottommost.y+bottommost.h+gap:H+2;}
       }
-      studioAppStyleWishCards[index]=fresh;
-      item=fresh;
+      studioAppStyleWishCards[index]=fresh;item=fresh;
     }
-
-    const x=item.x;
-    const y=item.y;
-    ctx.save();
-    ctx.globalAlpha=item.opacity;
-    ctx.textAlign="left";
-    ctx.textBaseline="middle";
-    ctx.shadowColor=(wishShadow?.value==="on" ? (wishShadowColor?.value||"#000000") : "transparent");
-    ctx.shadowBlur=wishShadow?.value==="on" ? Math.max(2,wishFont*.16) : 0;
+    const x=item.x,y=item.y;
+    ctx.save();ctx.globalAlpha=item.opacity;ctx.textAlign="left";ctx.textBaseline="middle";
+    ctx.shadowColor=(wishShadow?.value==="on"?(wishShadowColor?.value||"#000000"):"transparent");
+    ctx.shadowBlur=wishShadow?.value==="on"?Math.max(2,wishFont*.16):0;
     const wishY=y-wishFont*.32;
     ctx.font=`900 ${wishFont}px Arial, Helvetica, sans-serif`;
     const wishWidth=ctx.measureText(item.text).width;
-    ctx.shadowBlur=wishShadow?.value==="on" ? Math.max(1,countryFont*.12) : 0;
+    ctx.shadowBlur=wishShadow?.value==="on"?Math.max(1,countryFont*.12):0;
     ctx.font=`800 ${countryFont}px Arial, Helvetica, sans-serif`;
     const countryY=y+wishFont*.55;
     const countryWidth=ctx.measureText(item.country).width;
     const labelMode=wishLabel?.value||"none";
     if(labelMode!=="none"){
-      const padX=Math.max(8,countryFont*.38), padY=Math.max(4,countryFont*.18);
+      const padX=Math.max(8,countryFont*.38),padY=Math.max(4,countryFont*.18);
       const labelW=Math.max(wishWidth,countryWidth)+padX*2;
-      const labelTop=wishY-wishFont*.58-padY;
-      const labelBottom=countryY+countryFont*.58+padY;
-      const labelH=labelBottom-labelTop;
-      const labelX=x-padX;
+      const labelTop=wishY-wishFont*.58-padY,labelBottom=countryY+countryFont*.58+padY,labelH=labelBottom-labelTop,labelX=x-padX;
       ctx.save();ctx.shadowBlur=0;ctx.globalAlpha=item.opacity;ctx.fillStyle=wishLabelColor?.value||"#06152b";
       if(labelMode==="round"){
-        const radius=Math.min(labelH/2,Math.max(4,countryFont*.35));
-        ctx.beginPath();ctx.moveTo(labelX+radius,labelTop);ctx.arcTo(labelX+labelW,labelTop,labelX+labelW,labelTop+labelH,radius);ctx.arcTo(labelX+labelW,labelTop+labelH,labelX,labelTop+labelH,radius);ctx.arcTo(labelX,labelTop+labelH,labelX,labelTop,radius);ctx.arcTo(labelX,labelTop,labelX+labelW,labelTop,radius);ctx.closePath();ctx.fill();
-      }else{ctx.fillRect(labelX,labelTop,labelW,labelH);}
+        const radius=Math.min(labelH/2,Math.max(4,countryFont*.35));ctx.beginPath();ctx.moveTo(labelX+radius,labelTop);ctx.arcTo(labelX+labelW,labelTop,labelX+labelW,labelTop+labelH,radius);ctx.arcTo(labelX+labelW,labelTop+labelH,labelX,labelTop+labelH,radius);ctx.arcTo(labelX,labelTop+labelH,labelX,labelTop,radius);ctx.arcTo(labelX,labelTop,labelX+labelW,labelTop,radius);ctx.closePath();ctx.fill();
+      }else ctx.fillRect(labelX,labelTop,labelW,labelH);
       ctx.restore();
     }
-    ctx.font=`900 ${wishFont}px Arial, Helvetica, sans-serif`;
-    ctx.fillStyle=wishColor?.value||"#ffca31";
-    ctx.fillText(item.text,x,wishY);
-    ctx.shadowBlur=wishShadow?.value==="on" ? Math.max(1,countryFont*.12) : 0;
-    ctx.font=`800 ${countryFont}px Arial, Helvetica, sans-serif`;
-    ctx.fillStyle=wishCountryColor?.value||"#ffffff";
-    ctx.fillText(item.country,x,countryY);
+    ctx.font=`900 ${wishFont}px Arial, Helvetica, sans-serif`;ctx.fillStyle=wishColor?.value||"#ffca31";ctx.fillText(item.text,x,wishY);
+    ctx.shadowBlur=wishShadow?.value==="on"?Math.max(1,countryFont*.12):0;
+    ctx.font=`800 ${countryFont}px Arial, Helvetica, sans-serif`;ctx.fillStyle=wishCountryColor?.value||"#ffffff";ctx.fillText(item.country,x,countryY);
     ctx.restore();
   });
 }
+
+function getStudioWishDirectionKey(setting){
+  if(["left","slide-left","live-left"].includes(setting))return "x:-1";
+  if(["right","slide-right","live-right"].includes(setting))return "x:1";
+  if(["up","live-up"].includes(setting))return "y:-1";
+  if(setting==="down")return "y:1";
+  return "random";
+}
+let studioWishLastSetting=null;
 
 const GLOBAL_WISH_COUNTRIES = ["Nigeria","Afghanistan","Albania","Algeria","Andorra","Angola","Antigua and Barbuda","Argentina","Armenia","Australia","Austria","Azerbaijan","Bahamas","Bahrain","Bangladesh","Barbados","Belarus","Belgium","Belize","Benin","Bhutan","Bolivia","Bosnia and Herzegovina","Botswana","Brazil","Brunei","Bulgaria","Burkina Faso","Burundi","Cabo Verde","Cambodia","Cameroon","Canada","Central African Republic","Chad","Chile","China","Colombia","Comoros","Congo (Congo-Brazzaville)","Costa Rica","Croatia","Cuba","Cyprus","Czechia","Côte d’Ivoire","Democratic Republic of the Congo","Denmark","Djibouti","Dominica","Dominican Republic","Ecuador","Egypt","El Salvador","Equatorial Guinea","Eritrea","Estonia","Eswatini","Ethiopia","Fiji","Finland","France","Gabon","Gambia","Georgia","Germany","Ghana","Greece","Grenada","Guatemala","Guinea","Guinea-Bissau","Guyana","Haiti","Honduras","Hungary","Iceland","India","Indonesia","Iran","Iraq","Ireland","Israel","Italy","Jamaica","Japan","Jordan","Kazakhstan","Kenya","Kiribati","Kosovo","Kuwait","Kyrgyzstan","Laos","Latvia","Lebanon","Lesotho","Liberia","Libya","Liechtenstein","Lithuania","Luxembourg","Madagascar","Malawi","Malaysia","Maldives","Mali","Malta","Marshall Islands","Mauritania","Mauritius","Mexico","Micronesia","Moldova","Monaco","Mongolia","Montenegro","Morocco","Mozambique","Myanmar","Namibia","Nauru","Nepal","Netherlands","New Zealand","Nicaragua","Niger","North Korea","North Macedonia","Norway","Oman","Pakistan","Palau","Palestine","Panama","Papua New Guinea","Paraguay","Peru","Philippines","Poland","Portugal","Qatar","Romania","Russia","Rwanda","Saint Kitts and Nevis","Saint Lucia","Saint Vincent and the Grenadines","Samoa","San Marino","Sao Tome and Principe","Saudi Arabia","Senegal","Serbia","Seychelles","Sierra Leone","Singapore","Slovakia","Slovenia","Solomon Islands","Somalia","South Africa","South Korea","South Sudan","Spain","Sri Lanka","Sudan","Suriname","Sweden","Switzerland","Syria","Taiwan","Tajikistan","Tanzania","Thailand","Timor-Leste","Togo","Tonga","Trinidad and Tobago","Tunisia","Turkey","Turkmenistan","Tuvalu","Uganda","Ukraine","United Arab Emirates","United Kingdom","United States","Uruguay","Uzbekistan","Vanuatu","Vatican City","Venezuela","Vietnam","Yemen","Zambia","Zimbabwe"];
 let globalLocationIndex = 0;
